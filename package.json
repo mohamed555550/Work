@@ -3,6 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "build": "npm --prefix frontend ci && npm --prefix frontend run build && node -e \"const fs=require('fs');fs.rmSync('dist',{recursive:true,force:true});fs.cpSync('frontend/dist','dist',{recursive:true});\""
+    "build": "npm --prefix frontend ci && npm --prefix frontend run build && node scripts/prepare-sites-build.mjs"
   }
 }
