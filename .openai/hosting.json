@@ -1,0 +1,6 @@
+{
+  "project_id": "appgprj_6a5180645d3c8191a658aa72d7a74e41",
+  "source": "frontend",
+  "build_command": "npm run build",
+  "output_dir": "dist"
+}
