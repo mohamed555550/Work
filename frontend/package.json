@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:render": "node scripts/render-build.mjs",
     "build:mobile": "tsc && vite build --mode mobile",
     "preview": "vite preview",
     "test": "vitest run",

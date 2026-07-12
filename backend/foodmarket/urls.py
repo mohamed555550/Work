@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from users.views import LoginView, LogoutView, ProfileView, RefreshView, RegisterView
@@ -21,6 +22,7 @@ auth_aliases = [
 ]
 
 urlpatterns = [
+    path('healthz/', lambda request: JsonResponse({'ok': True}), name='healthz'),
     path('admin/', admin.site.urls),
     *auth_aliases,
     path('api/v1/', include((auth_aliases, 'auth_aliases'))),

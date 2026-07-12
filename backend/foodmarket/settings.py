@@ -2,6 +2,7 @@ import os
 from decimal import Decimal
 from pathlib import Path
 from datetime import timedelta
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,6 +19,12 @@ ALLOWED_HOSTS = [
     ).split(',')
     if host.strip()
 ]
+for render_host in (
+    os.getenv('RENDER_EXTERNAL_HOSTNAME'),
+    os.getenv('BACKEND_EXTERNAL_HOSTNAME'),
+):
+    if render_host and render_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(render_host)
 
 if not DEBUG and SECRET_KEY == 'unsafe-secret-change-me':
     raise RuntimeError('DJANGO_SECRET_KEY must be configured when DEBUG is disabled')
@@ -87,7 +94,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodmarket.wsgi.application'
 ASGI_APPLICATION = 'foodmarket.asgi.application'
 
-if os.getenv('USE_SQLITE', 'False').lower() in ('1', 'true', 'yes'):
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    parsed_database = urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed_database.path.lstrip('/'),
+            'USER': parsed_database.username or '',
+            'PASSWORD': parsed_database.password or '',
+            'HOST': parsed_database.hostname or '',
+            'PORT': parsed_database.port or 5432,
+            'CONN_MAX_AGE': 60,
+            'OPTIONS': {'sslmode': os.getenv('POSTGRES_SSLMODE', 'require')},
+        }
+    }
+elif os.getenv('USE_SQLITE', 'False').lower() in ('1', 'true', 'yes'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -146,6 +168,12 @@ CORS_ALLOWED_ORIGINS = [
     ).split(',')
     if origin.strip()
 ]
+for frontend_origin in (
+    os.getenv('FRONTEND_URL'),
+    f"https://{os.getenv('FRONTEND_EXTERNAL_HOSTNAME')}" if os.getenv('FRONTEND_EXTERNAL_HOSTNAME') else '',
+):
+    if frontend_origin and frontend_origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(frontend_origin)
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
@@ -155,6 +183,12 @@ CSRF_TRUSTED_ORIGINS = [
     ).split(',')
     if origin.strip()
 ]
+for frontend_origin in (
+    os.getenv('FRONTEND_URL'),
+    f"https://{os.getenv('FRONTEND_EXTERNAL_HOSTNAME')}" if os.getenv('FRONTEND_EXTERNAL_HOSTNAME') else '',
+):
+    if frontend_origin and frontend_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(frontend_origin)
 
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 USE_REDIS = os.getenv('USE_REDIS', 'False').lower() in ('1', 'true', 'yes')
@@ -177,7 +211,11 @@ else:
     CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
     CHANNEL_LAYERS = {'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}}
 
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+FRONTEND_URL = (
+    os.getenv('FRONTEND_URL')
+    or (f"https://{os.getenv('FRONTEND_EXTERNAL_HOSTNAME')}" if os.getenv('FRONTEND_EXTERNAL_HOSTNAME') else None)
+    or 'http://localhost:5173'
+)
 EMAIL_VERIFICATION_REQUIRED = os.getenv(
     'EMAIL_VERIFICATION_REQUIRED',
     'False' if DEBUG else 'True',

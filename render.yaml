@@ -1,0 +1,67 @@
+services:
+  - type: web
+    name: sanati-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    preDeployCommand: python manage.py migrate --noinput
+    startCommand: daphne -b 0.0.0.0 -p $PORT foodmarket.asgi:application
+    healthCheckPath: /healthz/
+    autoDeployTrigger: commit
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_BEHIND_PROXY
+        value: "True"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sanati-db
+          property: connectionString
+      - key: USE_REDIS
+        value: "False"
+      - key: EMAIL_VERIFICATION_REQUIRED
+        value: "False"
+      - key: FRONTEND_EXTERNAL_HOSTNAME
+        fromService:
+          type: web
+          name: sanati-web
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@sanati.local
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.console.EmailBackend
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: PLATFORM_COMMISSION_RATE
+        value: "10.00"
+
+  - type: web
+    name: sanati-web
+    runtime: static
+    rootDir: frontend
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci && npm run build:render
+    staticPublishPath: dist
+    autoDeployTrigger: commit
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: BACKEND_EXTERNAL_HOSTNAME
+        fromService:
+          type: web
+          name: sanati-api
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+
+databases:
+  - name: sanati-db
+    plan: free
+    region: frankfurt
+    databaseName: sanati
+    user: sanati

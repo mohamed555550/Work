@@ -63,7 +63,8 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        send_verification_email(user)
+        if settings.EMAIL_VERIFICATION_REQUIRED:
+            send_verification_email(user)
         return success_response(
             data={
                 'user': UserSerializer(user, context={'request': request}).data,
