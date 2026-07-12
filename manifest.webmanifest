@@ -1,0 +1,26 @@
+{
+  "name": "صنعتى",
+  "short_name": "صنعتى",
+  "description": "صنعتى - منصة عمال ومهن ومنتجات قريبة منك",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "ar",
+  "background_color": "#f8f6f2",
+  "theme_color": "#9bc53d",
+  "icons": [
+    {
+      "src": "/brand/sanati-mark.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/brand/sanati-mark.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
