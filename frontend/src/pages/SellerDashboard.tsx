@@ -4,6 +4,7 @@ import { products as productsApi, sellers as sellersApi } from '../api'
 import ArabicTimeSelect from '../components/ArabicTimeSelect'
 import { findTrade, findTradeCategory, trades } from '../data/trades'
 import { queryClient } from '../lib/queryClient'
+import { imageFallback } from '../utils/assets'
 
 function listOf(response: any) {
   const value = response?.data?.data ?? response?.data ?? []
@@ -311,7 +312,7 @@ export default function SellerDashboard() {
             return (
               <article key={product.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/70 bg-white p-4 shadow-lg">
                 <div className="flex min-w-0 items-center gap-3">
-                  {product.image && <img src={product.image} alt="" className="h-16 w-20 rounded-xl object-cover" />}
+                  {product.image && <img src={product.image} alt="" onError={imageFallback} className="h-16 w-20 rounded-xl object-cover" />}
                   <div className="min-w-0">
                     <h2 className="font-black">{product.name}</h2>
                     <p className="text-sm text-stone-500">{trade.name} · {category.name} · {price > 0 ? `${price.toLocaleString('ar-EG')} جنيه` : 'السعر بالاتفاق'}</p>

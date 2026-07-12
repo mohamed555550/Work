@@ -10,6 +10,7 @@ import { trades } from '../data/trades'
 import { useLocations } from '../hooks/useMarketplace'
 import { dataOf, errorMessage } from '../services/response'
 import { useAuthStore } from '../stores/authStore'
+import { publicAsset } from '../utils/assets'
 import type { Session } from '../types/marketplace'
 
 const loginSchema = z.object({
@@ -382,7 +383,7 @@ export default function Auth() {
       <section className={`surface-card auth-card relative w-full p-6 sm:p-8 ${mode === 'worker' ? 'max-w-2xl' : 'max-w-md'}`}>
         <div className="mb-7 text-center">
           <span className="mx-auto grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-[#e6f2bd] shadow-lg">
-            <img src="/brand/sanati-mark.png" alt="" className="h-full w-full object-contain" />
+            <img src={publicAsset('/brand/sanati-mark.png')} alt="" className="h-full w-full object-contain" />
           </span>
           <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-forest-900">صنعتى</h1>
           <p className="mt-2 text-sm leading-6 text-stone-500">دخول واضح للزبون والعامل، وكل عامل يحدد مهنته وفرعه وعنوان شغله.</p>

@@ -11,6 +11,7 @@ import {
 import { dataOf, listOf } from '../services/response'
 import { useAuthStore } from '../stores/authStore'
 import { findTrade } from '../data/trades'
+import { mediaUrl, publicAsset } from '../utils/assets'
 import type {
   AppNotification,
   Category,
@@ -61,8 +62,8 @@ const fallbackImages = [
 ]
 
 export function fallbackTradeImage(trade?: string, id = 0) {
-  if (trade) return findTrade(trade).image
-  return fallbackImages[Math.abs(id) % fallbackImages.length]
+  if (trade) return publicAsset(findTrade(trade).image)
+  return publicAsset(fallbackImages[Math.abs(id) % fallbackImages.length])
 }
 
 export function fallbackMealImage(_name: string, _category?: Category, id = 0) {
@@ -80,8 +81,8 @@ function mapSeller(raw: any): Seller {
     orderCount: Number(raw.order_count || 0),
     productCount: Number(raw.product_count || 0),
     approved: raw.approved === true || raw.approved === 'approved',
-    coverImage: raw.cover_image || null,
-    profileImage: raw.profile_image || null,
+    coverImage: raw.cover_image ? mediaUrl(raw.cover_image, fallbackTradeImage(undefined, Number(raw.id))) : fallbackTradeImage(undefined, Number(raw.id)),
+    profileImage: raw.profile_image ? mediaUrl(raw.profile_image, fallbackTradeImage(undefined, Number(raw.id))) : null,
     reviewCount: Number(raw.reviews_count || 0),
     followersCount: Number(raw.followers_count || 0),
     experienceYears: Number(raw.experience_years || 0),
@@ -103,7 +104,7 @@ function mapProduct(raw: any): Product {
     description: raw.description || '',
     ingredients: raw.ingredients || '',
     price: Number(raw.price),
-    image: raw.image || fallbackTradeImage(raw.trade, id),
+    image: mediaUrl(raw.image, fallbackTradeImage(raw.trade, id)),
     category: raw.category,
     preparationTime: Number(raw.preparation_time),
     rating: Number(raw.average_rating || 0),
@@ -132,11 +133,11 @@ function mapOrder(raw: any): Order {
       id: Number(item.id),
       productId: Number(item.product),
       productName: item.product_name,
-      productImage: item.product_image || fallbackMealImage(
+      productImage: mediaUrl(item.product_image, fallbackMealImage(
         item.product_name,
         undefined,
         Number(item.product),
-      ),
+      )),
       quantity: Number(item.quantity),
       unitPrice: Number(item.unit_price),
     })),
@@ -163,8 +164,8 @@ export function mapChatMessage(item: any): ChatMessage {
     senderName: item.sender_name,
     message: item.message || '',
     messageType: item.message_type || 'text',
-    image: item.image || null,
-    video: item.video || null,
+    image: item.image ? mediaUrl(item.image, '') : null,
+    video: item.video ? mediaUrl(item.video, '') : null,
     status: item.status || (item.read_at ? 'seen' : item.delivered_at ? 'delivered' : 'sent'),
     deliveredAt: item.delivered_at || null,
     readAt: item.read_at || null,
@@ -308,11 +309,11 @@ export function useCart() {
       productPrice: Number(item.product_price || 0),
       preparationTime: Number(item.preparation_time || 0),
       pickupAddress: item.pickup_address || '',
-      productImage: item.product_image || fallbackMealImage(
+      productImage: mediaUrl(item.product_image, fallbackMealImage(
         item.product_name,
         undefined,
         Number(item.product),
-      ),
+      )),
     })) as CartItem[],
   })
 }
@@ -378,7 +379,7 @@ export function useConversations(search = '') {
       otherUser: {
         id: Number(item.other_user.id),
         name: item.other_user.name,
-        profileImage: item.other_user.profile_image || null,
+        profileImage: item.other_user.profile_image ? mediaUrl(item.other_user.profile_image, '') : null,
         isOnline: Boolean(item.other_user.is_online),
         lastSeenAt: item.other_user.last_seen_at || null,
       },
@@ -538,4 +539,3 @@ export function useSellerApplication() {
     }) => sellersApi.apply(payload),
   })
 }
-

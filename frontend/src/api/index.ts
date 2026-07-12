@@ -1,16 +1,16 @@
 import api from './axios'
 
 export const auth = {
-  register: (payload: unknown) => api.post('/users/register/', payload),
+  register: (payload: unknown) => api.post('/register', payload),
   registerChef: (payload: unknown) => api.post('/users/register-chef/', payload),
-  login: (payload: unknown) => api.post('/users/login/', payload),
-  refresh: (payload: unknown) => api.post('/users/refresh/', payload),
-  logout: (refresh: string) => api.post('/users/logout/', { refresh }),
+  login: (payload: unknown) => api.post('/login', payload),
+  refresh: (payload: unknown) => api.post('/refresh', payload),
+  logout: (refresh: string) => api.post('/logout', { refresh }),
   verifyEmail: (payload: unknown) => api.post('/users/verify-email/', payload),
   forgotPassword: (payload: unknown) => api.post('/users/forgot-password/', payload),
   resetPassword: (payload: unknown) => api.post('/users/reset-password/', payload),
-  profile: () => api.get('/users/profile/'),
-  updateProfile: (payload: unknown) => api.patch('/users/profile/', payload),
+  profile: () => api.get('/me'),
+  updateProfile: (payload: unknown) => api.put('/profile', payload),
   sendSuggestion: (payload: { subject: string; message: string }) => api.post('/users/suggestions/', payload),
   adminUsers: () => api.get('/users/admin/users/'),
   adminUpdateUser: (id: number, payload: unknown) => api.patch(`/users/admin/users/${id}/`, payload),

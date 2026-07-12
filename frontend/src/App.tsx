@@ -13,6 +13,7 @@ import { queryClient } from './lib/queryClient'
 import { usePushNotifications, useRealtimeNotifications } from './hooks/useRealtime'
 import { useAuthStore } from './stores/authStore'
 import { useUiStore } from './stores/uiStore'
+import { publicAsset } from './utils/assets'
 import type { UserProfile } from './types/marketplace'
 
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
@@ -79,7 +80,7 @@ function ApplicationShell() {
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-[#ece7df] bg-white text-forest-800 shadow-sm lg:hidden" aria-label="اختيار الموقع">☰</button>
             <Link to="/" className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e6f2bd]" aria-label="صنعتى">
-              <img src="/brand/sanati-mark.png" alt="" className="h-full w-full object-contain" />
+              <img src={publicAsset('/brand/sanati-mark.png')} alt="" className="h-full w-full object-contain" />
             </Link>
             <div className="hidden sm:block">
               <Link to="/" className="text-lg font-extrabold text-[#242424]">صنعتى</Link>

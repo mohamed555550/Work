@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useToggleChefFavorite, useToggleChefFollow } from '../hooks/useMarketplace'
 import { findTrade, findTradeCategory } from '../data/trades'
 import { useAuthStore } from '../stores/authStore'
+import { imageFallback } from '../utils/assets'
 import type { Seller } from '../types/marketplace'
 
 interface ChefCardProps {
@@ -71,6 +72,7 @@ export default function ChefCard({ chef, index = 0 }: ChefCardProps) {
             src={chef.coverImage}
             alt={`غلاف ${chef.name}`}
             loading="lazy"
+            onError={imageFallback}
             className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
           />
         )}
@@ -109,7 +111,7 @@ export default function ChefCard({ chef, index = 0 }: ChefCardProps) {
       <div className="relative px-5 pb-5 pt-12">
         <div className="absolute -top-11 right-5 h-[5.5rem] w-[5.5rem] overflow-hidden rounded-2xl border-4 border-white bg-brand-50 shadow-lg">
           {chef.profileImage ? (
-            <img src={chef.profileImage} alt={chef.name} loading="lazy" className="h-full w-full object-cover" />
+            <img src={chef.profileImage} alt={chef.name} loading="lazy" onError={imageFallback} className="h-full w-full object-cover" />
           ) : (
             <Initials name={chef.name} />
           )}

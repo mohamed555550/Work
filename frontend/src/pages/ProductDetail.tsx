@@ -3,6 +3,7 @@ import { useChef, useFavorites, useProduct, useStartChefChat, useToggleFavorite 
 import { findTrade, findTradeCategory } from '../data/trades'
 import { useAuthStore } from '../stores/authStore'
 import { formatArabicTime } from '../components/ChefCard'
+import { imageFallback } from '../utils/assets'
 import NotFound from './NotFound'
 
 export default function ProductDetail() {
@@ -35,7 +36,7 @@ export default function ProductDetail() {
   return (
     <main className="mx-auto min-h-screen max-w-6xl pb-28">
       <div className="relative h-80 overflow-hidden sm:mx-6 sm:mt-7 sm:rounded-[2rem] lg:h-[28rem]">
-        <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+        <img src={product.image} alt={product.name} onError={imageFallback} className="h-full w-full object-cover" />
         <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
           <Link to="/for-sale" className="grid h-11 w-11 place-items-center rounded-full bg-white/90 font-black">‹</Link>
           <button onClick={() => token ? toggleFavorite.mutate(product.id) : navigate('/auth')} className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-rose-600">

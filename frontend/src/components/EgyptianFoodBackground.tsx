@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { imageFallback, publicAsset } from '../utils/assets'
 
 const images = [
   '/backgrounds/trades/15-network.jpg',
@@ -10,7 +11,7 @@ const images = [
 export default function WorkerBackground() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [previousIndex, setPreviousIndex] = useState<number | null>(null)
-  const nextImage = useMemo(() => images[(currentIndex + 1) % images.length], [currentIndex])
+  const nextImage = useMemo(() => publicAsset(images[(currentIndex + 1) % images.length]), [currentIndex])
 
   useEffect(() => {
     const preload = new Image()
@@ -37,14 +38,16 @@ export default function WorkerBackground() {
       {previousIndex !== null && (
         <img
           key={`previous-${previousIndex}`}
-          src={images[previousIndex]}
+          src={publicAsset(images[previousIndex])}
+          onError={imageFallback}
           alt=""
           className="worker-background__image worker-background__image--previous"
         />
       )}
       <img
         key={`current-${currentIndex}`}
-        src={images[currentIndex]}
+        src={publicAsset(images[currentIndex])}
+        onError={imageFallback}
         alt=""
         fetchPriority={currentIndex === 0 ? 'high' : 'auto'}
         className="worker-background__image worker-background__image--visible"

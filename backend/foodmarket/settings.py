@@ -10,7 +10,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'unsafe-secret-change-me')
 DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes')
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        'DJANGO_ALLOWED_HOSTS',
+        'localhost,127.0.0.1,testserver,mohamed555550.github.io,raw.githack.com',
+    ).split(',')
+    if host.strip()
+]
 
 if not DEBUG and SECRET_KEY == 'unsafe-secret-change-me':
     raise RuntimeError('DJANGO_SECRET_KEY must be configured when DEBUG is disabled')
@@ -131,9 +138,23 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.User'
 
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',') if origin.strip()]
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:5173,http://127.0.0.1:5173,https://mohamed555550.github.io,https://raw.githack.com',
+    ).split(',')
+    if origin.strip()
+]
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        'CSRF_TRUSTED_ORIGINS',
+        'http://localhost:5173,http://127.0.0.1:5173,https://mohamed555550.github.io,https://raw.githack.com',
+    ).split(',')
+    if origin.strip()
+]
 
 REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 USE_REDIS = os.getenv('USE_REDIS', 'False').lower() in ('1', 'true', 'yes')
@@ -157,6 +178,10 @@ else:
     CHANNEL_LAYERS = {'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}}
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+EMAIL_VERIFICATION_REQUIRED = os.getenv(
+    'EMAIL_VERIFICATION_REQUIRED',
+    'False' if DEBUG else 'True',
+).lower() in ('1', 'true', 'yes')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@sanati.local')
 SUGGESTIONS_EMAIL = os.getenv('SUGGESTIONS_EMAIL', 'elnono55555@gmail.com')
 WEB_PUSH_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')

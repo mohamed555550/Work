@@ -152,6 +152,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return success_response(data=self.get_serializer(self.get_object()).data)
 
     def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
         super().update(request, *args, **kwargs)
         return success_response(data=self.get_serializer(self.get_object()).data, message='تم تحديث الملف الشخصي')
 

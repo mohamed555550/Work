@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications as notificationsApi } from '../api'
 import { useAuthStore } from '../stores/authStore'
+import { publicAsset } from '../utils/assets'
 import type { AppNotification, ChatMessage } from '../types/marketplace'
 import { mapChatMessage, queryKeys } from './useMarketplace'
 
@@ -74,7 +75,7 @@ export function usePushNotifications() {
 
     async function setupPush() {
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js')
+        const registration = await navigator.serviceWorker.register(publicAsset('/sw.js'))
         if (!active) return
 
         if (Notification.permission === 'default') {
@@ -125,7 +126,7 @@ export function useRealtimeNotifications() {
     if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
       new Notification(notification.title, {
         body: notification.content,
-        icon: '/brand/sanati-mark.png',
+        icon: publicAsset('/brand/sanati-mark.png'),
       })
     }
   })

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useFavorites, useStartChefChat, useToggleFavorite } from '../hooks/useMarketplace'
 import { findTrade, findTradeCategory } from '../data/trades'
 import { useAuthStore } from '../stores/authStore'
+import { imageFallback } from '../utils/assets'
 import type { Product } from '../types/marketplace'
 
 interface ProductCardProps {
@@ -30,7 +31,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   return (
     <motion.article whileHover={{ y: -2 }} className="flex h-full flex-col overflow-hidden rounded-3xl border border-[#dfe4ee] bg-white shadow-card transition-shadow hover:shadow-float">
       <Link to={`/products/${product.id}`} className="relative overflow-hidden">
-        <img src={product.image} alt={product.name} loading="lazy" className={`w-full object-cover transition duration-500 hover:scale-105 ${compact ? 'h-40' : 'h-48'}`} />
+        <img src={product.image} alt={product.name} loading="lazy" onError={imageFallback} className={`w-full object-cover transition duration-500 hover:scale-105 ${compact ? 'h-40' : 'h-48'}`} />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/35 to-transparent" />
         <button
           aria-label="تبديل المفضلة"

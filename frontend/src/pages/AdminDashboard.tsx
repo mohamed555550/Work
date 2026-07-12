@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { auditLogs as auditApi, auth, products as productsApi, sellers as sellersApi } from '../api'
+import { imageFallback } from '../utils/assets'
 
 type Tab = 'overview' | 'users' | 'workers' | 'products' | 'audit'
 
@@ -157,7 +158,7 @@ export default function AdminDashboard() {
           {products.map((product) => (
             <article key={product.id} className="surface-card flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
-                {product.image && <img src={product.image} alt="" className="h-16 w-20 rounded-xl object-cover" />}
+                {product.image && <img src={product.image} alt="" onError={imageFallback} className="h-16 w-20 rounded-xl object-cover" />}
                 <div>
                   <h2 className="font-black">{product.name}</h2>
                   <p className="text-sm text-stone-500">{product.seller?.name} · الاتفاق في الشات · {product.listing_type}</p>

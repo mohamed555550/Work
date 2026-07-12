@@ -8,6 +8,7 @@ import {
 } from '../hooks/useMarketplace'
 import { useOrderChatSocket } from '../hooks/useRealtime'
 import { useAuthStore } from '../stores/authStore'
+import { imageFallback } from '../utils/assets'
 import type { ChatMessage } from '../types/marketplace'
 
 const emojis = ['😀', '😂', '🥰', '😍', '😊', '🙏', '👏', '👍', '❤️', '🔥', '🎉', '😋', '🍲', '👨‍🍳', '👩‍🍳']
@@ -135,7 +136,7 @@ export default function Chat() {
             >
               <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full bg-orange-100">
                 {conversation.otherUser.profileImage ? (
-                  <img src={conversation.otherUser.profileImage} alt="" className="h-full w-full object-cover" />
+                  <img src={conversation.otherUser.profileImage} alt="" onError={imageFallback} className="h-full w-full object-cover" />
                 ) : (
                   <span className="grid h-full w-full place-items-center font-black text-brand-700">{conversation.otherUser.name.slice(0, 1)}</span>
                 )}
@@ -171,7 +172,7 @@ export default function Chat() {
               <Link to="/messages" className="grid h-10 w-10 place-items-center rounded-full bg-orange-50 font-black lg:hidden">‹</Link>
               <div className="relative h-11 w-11 overflow-hidden rounded-full bg-orange-100">
                 {selectedConversation?.otherUser.profileImage ? (
-                  <img src={selectedConversation.otherUser.profileImage} alt="" className="h-full w-full object-cover" />
+                  <img src={selectedConversation.otherUser.profileImage} alt="" onError={imageFallback} className="h-full w-full object-cover" />
                 ) : (
                   <span className="grid h-full w-full place-items-center font-black text-brand-700">{selectedConversation?.otherUser.name.slice(0, 1) || 'م'}</span>
                 )}
@@ -219,7 +220,7 @@ export default function Chat() {
                                 <span className="line-clamp-1 opacity-80">{item.reply.message || (item.reply.messageType === 'image' ? 'صورة' : 'فيديو')}</span>
                               </div>
                             )}
-                            {item.image && <img src={item.image} alt="صورة مرسلة" loading="lazy" className="max-h-80 w-full object-cover" />}
+                            {item.image && <img src={item.image} alt="صورة مرسلة" loading="lazy" onError={imageFallback} className="max-h-80 w-full object-cover" />}
                             {item.video && <video src={item.video} controls preload="metadata" className="max-h-56 w-full bg-black object-contain sm:max-h-64" />}
                             {item.message && <p className="px-4 py-3">{item.message}</p>}
                           </>
@@ -251,7 +252,7 @@ export default function Chat() {
               {attachment && (
                 <div className="mb-2 relative w-fit overflow-hidden rounded-xl bg-stone-950">
                   {attachment.type === 'image'
-                    ? <img src={attachment.url} alt="معاينة" className="h-24 w-28 object-cover" />
+                    ? <img src={attachment.url} alt="معاينة" onError={imageFallback} className="h-24 w-28 object-cover" />
                     : <video src={attachment.url} className="h-24 w-32 object-cover" />}
                   <button type="button" onClick={() => { URL.revokeObjectURL(attachment.url); setAttachment(null) }} className="absolute left-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white">×</button>
                 </div>
@@ -286,4 +287,3 @@ export default function Chat() {
     </main>
   )
 }
-

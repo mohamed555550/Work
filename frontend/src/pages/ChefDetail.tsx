@@ -5,6 +5,7 @@ import ProductCard from '../components/ProductCard'
 import { useChef, useProducts, useStartChefChat } from '../hooks/useMarketplace'
 import { useAuthStore } from '../stores/authStore'
 import { errorMessage } from '../services/response'
+import { imageFallback } from '../utils/assets'
 import NotFound from './NotFound'
 
 export default function ChefDetail() {
@@ -37,13 +38,13 @@ export default function ChefDetail() {
     <main className="min-h-screen pb-28">
       <section className="relative">
         <div className="h-64 overflow-hidden bg-gradient-to-br from-forest-900 via-forest-800 to-brand-900 sm:h-80">
-          {worker.coverImage && <img src={worker.coverImage} alt={`غلاف ${worker.name}`} className="h-full w-full object-cover" />}
+          {worker.coverImage && <img src={worker.coverImage} alt={`غلاف ${worker.name}`} onError={imageFallback} className="h-full w-full object-cover" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/5 to-black/15" />
         </div>
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="-mt-16 flex items-end gap-4">
             <div className="h-32 w-32 shrink-0 overflow-hidden rounded-3xl border-[5px] border-white bg-brand-50 shadow-float sm:h-40 sm:w-40">
-              {worker.profileImage ? <img src={worker.profileImage} alt={worker.name} className="h-full w-full object-cover" /> : <span className="grid h-full w-full place-items-center text-4xl font-black text-brand-700">{worker.name.slice(0, 1)}</span>}
+              {worker.profileImage ? <img src={worker.profileImage} alt={worker.name} onError={imageFallback} className="h-full w-full object-cover" /> : <span className="grid h-full w-full place-items-center text-4xl font-black text-brand-700">{worker.name.slice(0, 1)}</span>}
             </div>
             <div className="min-w-0 pb-3">
               <h1 className="truncate text-2xl font-black sm:text-4xl">{worker.name}</h1>

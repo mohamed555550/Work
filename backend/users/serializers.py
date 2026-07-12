@@ -24,7 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
 class LoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        if not self.user.email_verified:
+        if settings.EMAIL_VERIFICATION_REQUIRED and not self.user.email_verified:
             raise serializers.ValidationError({'email': 'يجب تأكيد البريد الإلكتروني قبل تسجيل الدخول'})
         data['user'] = UserSerializer(self.user, context=self.context).data
         return data
@@ -57,7 +57,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
-            email_verified=False,
+            email_verified=not settings.EMAIL_VERIFICATION_REQUIRED,
         )
 
 
@@ -153,7 +153,7 @@ class ChefRegisterSerializer(RegisterSerializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
             role='seller',
-            email_verified=False,
+            email_verified=not settings.EMAIL_VERIFICATION_REQUIRED,
         )
         SellerProfile.objects.create(
             user=user,
