@@ -1,5 +1,5 @@
 ﻿import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { HashRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import BottomNav from './components/BottomNav'
 import LocationSidebar from './components/LocationSidebar'
@@ -181,5 +181,5 @@ function ApplicationShell() {
 }
 
 export default function App() {
-  return <BrowserRouter basename={import.meta.env.BASE_URL}><ApplicationShell /></BrowserRouter>
+  return <HashRouter><ApplicationShell /></HashRouter>
 }
