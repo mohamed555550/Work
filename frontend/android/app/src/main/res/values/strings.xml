@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">صنعتى</string>
+    <string name="title_activity_main">صنعتى</string>
+    <string name="package_name">com.sanay3y.app</string>
+    <string name="custom_url_scheme">com.sanay3y.app</string>
+</resources>

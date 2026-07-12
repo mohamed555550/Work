@@ -96,10 +96,10 @@ Gmail instead of the development console, configure `EMAIL_BACKEND` as
 
 The access token is sent as a WebSocket subprotocol so it does not appear in proxy access logs. Access is checked against the authenticated user and order participants. REST remains available as a reconnect fallback.
 
-## Aklivo support chat
+## صنعتى support chat
 
 Every authenticated customer and chef can open `/support` from the floating
-**Aklivo Support** button to ask a question or submit a private complaint.
+**صنعتى Support** button to ask a question or submit a private complaint.
 Administrators use the same page to search support conversations, reply, and
 close or reopen complaints. New messages notify the other side, and the
 support inbox refreshes automatically.

@@ -1,0 +1,201 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  --surface: #ffffff;
+  --canvas: #f6f7fb;
+  --ink: #1d2624;
+  --muted: #4f5754;
+  --line: #dfe4ee;
+}
+
+html {
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-[#f6f7fb] text-[#1d2624] antialiased;
+  margin: 0;
+  min-width: 320px;
+  background-image:
+    radial-gradient(circle at 8% 4%, rgba(59, 130, 246, 0.08), transparent 24rem),
+    radial-gradient(circle at 92% 18%, rgba(132, 204, 22, 0.07), transparent 28rem);
+  background-attachment: fixed;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+textarea,
+select {
+  @apply transition duration-200;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  @apply ring-4 ring-brand-100/70;
+}
+
+::selection {
+  background: #2563eb;
+  color: white;
+}
+
+/* Stronger neutral text contrast across glass surfaces and light cards. */
+.text-stone-300 {
+  color: #6b625c;
+}
+
+.text-stone-400 {
+  color: #57504b;
+}
+
+.text-stone-500 {
+  color: #403a36;
+}
+
+.text-stone-600 {
+  color: #292524;
+}
+
+.text-stone-700 {
+  color: #1c1917;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #655e58;
+  opacity: 1;
+}
+
+.worker-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #121722;
+}
+
+.worker-background__image {
+  position: absolute;
+  inset: -2%;
+  width: 104%;
+  height: 104%;
+  object-fit: cover;
+  transform: scale(1.01);
+  opacity: 0;
+  filter: saturate(0.9) contrast(1.02) brightness(0.9);
+  transition: opacity 4.2s ease, transform 16s ease;
+  will-change: opacity;
+}
+
+.worker-background__image--visible {
+  opacity: 1;
+  transform: scale(1.025);
+}
+
+.worker-background__overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(12, 18, 30, 0.36), rgba(12, 18, 30, 0.58)),
+    radial-gradient(circle at 50% 26%, rgba(255, 255, 255, 0.04) 0, rgba(12, 18, 30, 0.18) 58%, rgba(12, 18, 30, 0.46) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .worker-background__image {
+    transform: scale(1.025);
+    transition: opacity 0.01ms linear;
+  }
+}
+
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.soft-shadow {
+  box-shadow: 0 16px 45px rgba(32, 42, 40, 0.07);
+}
+
+@layer components {
+  .page-shell {
+    @apply mx-auto min-h-screen w-full max-w-7xl bg-transparent px-4 pb-28 pt-7 sm:px-6 lg:px-8;
+    animation: page-rise 0.22s ease both;
+  }
+
+  .page-heading {
+    @apply text-2xl font-extrabold tracking-[-0.03em] text-white drop-shadow-lg sm:text-3xl;
+  }
+
+  .page-subtitle {
+    @apply mt-2 text-sm font-medium leading-6 text-white/80 drop-shadow-md;
+  }
+
+  .surface-card {
+    @apply rounded-3xl border border-white/50 bg-white/85 text-[#1d2624] shadow-[0_18px_55px_rgba(0,0,0,0.22)] backdrop-blur-xl;
+    animation: card-pop 0.2s ease both;
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-900/10 transition hover:bg-brand-700 disabled:opacity-50;
+  }
+
+  .secondary-button {
+    @apply inline-flex items-center justify-center rounded-xl border border-[#dfe4ee] bg-white px-5 py-3 text-sm font-bold text-stone-700 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700;
+  }
+
+  .field-control {
+    @apply w-full rounded-xl border border-[#ccd6e4] bg-[#fbfcff] px-4 py-3 text-sm font-medium text-stone-800 outline-none placeholder:font-medium placeholder:text-stone-500 focus:border-brand-500 focus:bg-white;
+  }
+
+  .eyebrow {
+    @apply text-xs font-extrabold uppercase tracking-[0.16em] text-[#d8f99d] drop-shadow-md;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
