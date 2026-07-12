@@ -181,6 +181,5 @@ function ApplicationShell() {
 }
 
 export default function App() {
-  return <BrowserRouter><ApplicationShell /></BrowserRouter>
+  return <BrowserRouter basename={import.meta.env.BASE_URL}><ApplicationShell /></BrowserRouter>
 }
-
