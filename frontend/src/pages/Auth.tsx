@@ -100,11 +100,11 @@ function LoginForm({ kind, onForgot }: { kind: 'customer' | 'worker'; onForgot: 
         return
       }
       if (kind === 'worker' && session.user.role !== 'seller') {
-        setServerError('هذا الحساب ليس حساب صنايعي. استخدم دخول عميل أو سجل حساب صنايعي.')
+        setServerError('هذا الحساب ليس حساب عامل. استخدم دخول عميل أو سجل حساب عامل.')
         return
       }
       if (kind === 'customer' && session.user.role === 'seller') {
-        setServerError('هذا الحساب حساب صنايعي. استخدم دخول صنايعي.')
+        setServerError('هذا الحساب حساب عامل. استخدم دخول عامل.')
         return
       }
       setSession(session)
@@ -127,7 +127,7 @@ function LoginForm({ kind, onForgot }: { kind: 'customer' | 'worker'; onForgot: 
       </div>
       <button type="button" onClick={onForgot} className="text-sm font-bold text-brand-700">نسيت كلمة المرور؟</button>
       {serverError && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{serverError}</p>}
-      <button disabled={isSubmitting} className="primary-button w-full">{isSubmitting ? 'جاري الدخول...' : kind === 'worker' ? 'دخول صنايعي' : 'دخول عميل'}</button>
+      <button disabled={isSubmitting} className="primary-button w-full">{isSubmitting ? 'جاري الدخول...' : kind === 'worker' ? 'دخول عامل' : 'دخول عميل'}</button>
     </form>
   )
 }
@@ -408,8 +408,19 @@ function ResetPassword() {
 
 export default function Auth() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const { accessToken, accountRole, profile } = useAuthStore()
   const [mode, setMode] = useState<'loginCustomer' | 'loginWorker' | 'register' | 'worker' | 'forgot'>('loginCustomer')
   const special = pathname.endsWith('/verify') ? <VerifyEmail /> : pathname.endsWith('/reset-password') ? <ResetPassword /> : null
+
+  useEffect(() => {
+    if (!accessToken || special) return
+    const role = profile?.role || accountRole
+    if (role === 'admin') navigate('/admin', { replace: true })
+    else if (role === 'seller') navigate('/seller', { replace: true })
+    else if (role === 'user') navigate('/', { replace: true })
+  }, [accessToken, accountRole, navigate, profile?.role, special])
+
   return (
     <main className="relative grid min-h-[calc(100vh-116px)] place-items-center overflow-hidden px-4 py-10 pb-28">
       <section className={`surface-card auth-card relative w-full p-6 sm:p-8 ${mode === 'worker' ? 'max-w-2xl' : 'max-w-md'}`}>
@@ -417,16 +428,16 @@ export default function Auth() {
           <span className="mx-auto grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-[#e6f2bd] shadow-lg">
             <img src={publicAsset('/brand/sanati-mark.png')} alt="" className="h-full w-full object-contain" />
           </span>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-forest-900">صنعتى</h1>
-          <p className="mt-2 text-sm leading-6 text-stone-500">دخول واضح للزبون والعامل، وكل عامل يحدد مهنته وفرعه وعنوان شغله.</p>
+          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-forest-900">تسجيل الدخول</h1>
+          <p className="mt-2 text-sm leading-6 text-stone-500">اختار نوع الحساب، وهنفتحه بنفس النوع تلقائيًا بعد كده.</p>
         </div>
         {special || (
           <>
             {mode !== 'forgot' && (
               <div className="mb-6 grid grid-cols-2 rounded-xl bg-[#f3f1ec] p-1 sm:grid-cols-4">
                 <button onClick={() => setMode('loginCustomer')} className={`rounded-lg py-2.5 text-xs font-bold transition sm:text-sm ${mode === 'loginCustomer' ? 'bg-white text-forest-900 shadow-sm' : 'text-stone-500'}`}>دخول عميل</button>
-                <button onClick={() => setMode('loginWorker')} className={`rounded-lg py-2.5 text-xs font-bold transition sm:text-sm ${mode === 'loginWorker' ? 'bg-white text-forest-900 shadow-sm' : 'text-stone-500'}`}>دخول صنايعي</button>
-                <button onClick={() => setMode('register')} className={`rounded-lg py-2.5 text-xs font-bold transition sm:text-sm ${mode === 'register' ? 'bg-white text-forest-900 shadow-sm' : 'text-stone-500'}`}>حساب زبون</button>
+                <button onClick={() => setMode('loginWorker')} className={`rounded-lg py-2.5 text-xs font-bold transition sm:text-sm ${mode === 'loginWorker' ? 'bg-white text-forest-900 shadow-sm' : 'text-stone-500'}`}>دخول عامل</button>
+                <button onClick={() => setMode('register')} className={`rounded-lg py-2.5 text-xs font-bold transition sm:text-sm ${mode === 'register' ? 'bg-white text-forest-900 shadow-sm' : 'text-stone-500'}`}>حساب عميل</button>
                 <button onClick={() => setMode('worker')} className={`rounded-lg py-2.5 text-xs font-bold transition sm:text-sm ${mode === 'worker' ? 'bg-white text-forest-900 shadow-sm' : 'text-stone-500'}`}>حساب عامل</button>
               </div>
             )}

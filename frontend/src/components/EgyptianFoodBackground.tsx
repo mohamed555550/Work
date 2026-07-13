@@ -38,14 +38,14 @@ export default function WorkerBackground() {
         setPreviousIndex(index)
         return (index + 1) % images.length
       })
-    }, 18000)
+    }, 8000)
 
     return () => window.clearInterval(interval)
   }, [nextImage])
 
   useEffect(() => {
     if (previousIndex === null) return
-    const timeout = window.setTimeout(() => setPreviousIndex(null), 4600)
+    const timeout = window.setTimeout(() => setPreviousIndex(null), 2600)
     return () => window.clearTimeout(timeout)
   }, [previousIndex])
 
