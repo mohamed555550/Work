@@ -13,7 +13,7 @@ import { queryClient } from './lib/queryClient'
 import { usePushNotifications, useRealtimeNotifications } from './hooks/useRealtime'
 import { useAuthStore } from './stores/authStore'
 import { useUiStore } from './stores/uiStore'
-import { publicAsset } from './utils/assets'
+import { mediaUrl, publicAsset } from './utils/assets'
 import type { UserProfile } from './types/marketplace'
 
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
@@ -37,8 +37,9 @@ const ForSale = lazy(() => import('./pages/ForSale'))
 function ApplicationShell() {
   const location = useLocation()
   const isHome = location.pathname === '/'
-  const { accessToken, setProfile, logout } = useAuthStore()
+  const { accessToken, profile, setProfile, logout } = useAuthStore()
   const { governorate, center, sidebarOpen, setSidebarOpen } = useUiStore()
+  const displayName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || profile?.username || 'حساب'
   useRealtimeNotifications()
   usePushNotifications()
 
@@ -78,7 +79,7 @@ function ApplicationShell() {
       <header className="sticky top-0 z-30 border-b border-white/35 bg-white/30 shadow-[0_12px_36px_rgba(18,15,11,0.28)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-[#ece7df] bg-white text-forest-800 shadow-sm lg:hidden" aria-label="اختيار الموقع">☰</button>
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="grid h-11 w-11 place-items-center rounded-xl border border-[#ece7df] bg-white text-2xl text-forest-800 shadow-sm lg:hidden" aria-label="اختيار الموقع والمهنة">{sidebarOpen ? '×' : '☰'}</button>
             <Link to="/" className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-[#e6f2bd]" aria-label="صنعتى">
               <img src={publicAsset('/brand/sanati-mark.png')} alt="" className="h-full w-full object-contain" />
             </Link>
@@ -103,8 +104,14 @@ function ApplicationShell() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Link to="/notifications" className="grid h-10 w-10 place-items-center rounded-xl border border-[#ece7df] bg-white text-lg transition hover:border-brand-200" aria-label="الإشعارات">🔔</Link>
-            <Link to={accessToken ? '/profile' : '/auth'} className="grid h-10 w-10 place-items-center rounded-xl bg-brand-500 text-xs font-extrabold text-white shadow-lg shadow-brand-500/20">حساب</Link>
+            <Link to="/notifications" className="grid h-11 w-11 place-items-center rounded-xl border border-[#ece7df] bg-white text-xl transition hover:border-brand-200" aria-label="الإشعارات">🔔</Link>
+            <Link to={accessToken ? '/profile' : '/auth'} className="flex h-11 max-w-32 items-center justify-center overflow-hidden rounded-xl bg-brand-500 px-3 text-xs font-extrabold text-white shadow-lg shadow-brand-500/20">
+              {accessToken && profile?.profile_image ? (
+                <img src={mediaUrl(profile.profile_image, publicAsset('/brand/sanati-mark.png'))} alt={displayName} className="h-9 w-9 rounded-lg object-cover" />
+              ) : (
+                <span className="truncate">{accessToken ? displayName : 'حساب'}</span>
+              )}
+            </Link>
           </div>
         </div>
       </header>
@@ -135,7 +142,7 @@ function ApplicationShell() {
                 role="dialog"
                 aria-modal="true"
                 aria-label="اختيار المحافظة والمركز"
-                className={`fixed inset-y-0 right-0 z-50 grid w-[40rem] max-w-[96vw] grid-cols-1 overflow-hidden border-l border-white/30 bg-white/20 shadow-[-18px_0_50px_rgba(0,0,0,0.35)] backdrop-blur-2xl sm:grid-cols-2 ${isHome ? '' : 'lg:hidden'}`}
+                className={`fixed inset-y-0 right-0 z-50 grid w-[44rem] max-w-[100vw] grid-cols-2 overflow-hidden border-l border-white/30 bg-white/20 shadow-[-18px_0_50px_rgba(0,0,0,0.35)] backdrop-blur-2xl ${isHome ? '' : 'lg:hidden'}`}
               >
                 <LocationSidebar />
                 <TradeSidebar />

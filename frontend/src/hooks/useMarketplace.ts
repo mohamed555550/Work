@@ -12,6 +12,7 @@ import { dataOf, listOf } from '../services/response'
 import { useAuthStore } from '../stores/authStore'
 import { findTrade } from '../data/trades'
 import { mediaUrl, publicAsset } from '../utils/assets'
+import { cleanText } from '../utils/text'
 import type {
   AppNotification,
   Category,
@@ -72,11 +73,11 @@ export function fallbackMealImage(_name: string, _category?: Category, id = 0) {
 function mapSeller(raw: any): Seller {
   return {
     id: Number(raw.id),
-    name: raw.name,
-    governorate: raw.governorate,
-    center: raw.center,
-    pickupAddress: raw.pickup_address || '',
-    bio: raw.food_description || '',
+    name: cleanText(raw.name),
+    governorate: cleanText(raw.governorate),
+    center: cleanText(raw.center),
+    pickupAddress: cleanText(raw.pickup_address || ''),
+    bio: cleanText(raw.food_description || ''),
     rating: Number(raw.rating || 0),
     orderCount: Number(raw.order_count || 0),
     productCount: Number(raw.product_count || 0),
@@ -86,7 +87,11 @@ function mapSeller(raw: any): Seller {
     reviewCount: Number(raw.reviews_count || 0),
     followersCount: Number(raw.followers_count || 0),
     experienceYears: Number(raw.experience_years || 0),
-    professions: Array.isArray(raw.professions) ? raw.professions : [],
+    professions: Array.isArray(raw.professions) ? raw.professions.map((item: any) => ({
+      ...item,
+      title: cleanText(item.title),
+      description: cleanText(item.description),
+    })) : [],
     isOpen: Boolean(raw.is_open),
     workStartTime: raw.work_start_time || '09:00',
     workEndTime: raw.work_end_time || '17:00',
@@ -100,9 +105,9 @@ function mapProduct(raw: any): Product {
   const id = Number(raw.id)
   return {
     id,
-    name: raw.name,
-    description: raw.description || '',
-    ingredients: raw.ingredients || '',
+    name: cleanText(raw.name),
+    description: cleanText(raw.description || ''),
+    ingredients: cleanText(raw.ingredients || ''),
     price: Number(raw.price),
     image: mediaUrl(raw.image, fallbackTradeImage(raw.trade, id)),
     category: raw.category,
@@ -110,7 +115,7 @@ function mapProduct(raw: any): Product {
     rating: Number(raw.average_rating || 0),
     reviewCount: Number(raw.review_count || 0),
     sellerId: Number(raw.seller?.id),
-    sellerName: raw.seller?.name || '',
+    sellerName: cleanText(raw.seller?.name || ''),
     isAvailable: raw.can_order ?? raw.is_available !== false,
     availableAt: raw.available_at || null,
     listingType: raw.listing_type || 'sale',
@@ -125,14 +130,14 @@ function mapOrder(raw: any): Order {
     status: raw.status,
     total: Number(raw.total_price),
     createdAt: raw.created_at,
-    sellerName: raw.seller_name || '',
-    userName: raw.user_name,
+    sellerName: cleanText(raw.seller_name || ''),
+    userName: cleanText(raw.user_name),
     pickupTime: raw.pickup_time,
     pickupAddress: raw.pickup_address || '',
     items: (raw.items || []).map((item: any) => ({
       id: Number(item.id),
       productId: Number(item.product),
-      productName: item.product_name,
+      productName: cleanText(item.product_name),
       productImage: mediaUrl(item.product_image, fallbackMealImage(
         item.product_name,
         undefined,
@@ -147,8 +152,8 @@ function mapOrder(raw: any): Order {
 function mapNotification(raw: any): AppNotification {
   return {
     id: Number(raw.id),
-    title: raw.title,
-    content: raw.content,
+    title: cleanText(raw.title),
+    content: cleanText(raw.content),
     type: raw.notification_type,
     read: Boolean(raw.read),
     createdAt: raw.created_at,
@@ -161,8 +166,8 @@ export function mapChatMessage(item: any): ChatMessage {
     id: Number(item.id),
     orderId: String(item.order),
     senderId: Number(item.sender),
-    senderName: item.sender_name,
-    message: item.message || '',
+    senderName: cleanText(item.sender_name),
+    message: cleanText(item.message || ''),
     messageType: item.message_type || 'text',
     image: item.image ? mediaUrl(item.image, '') : null,
     video: item.video ? mediaUrl(item.video, '') : null,
@@ -173,8 +178,8 @@ export function mapChatMessage(item: any): ChatMessage {
     canDeleteForEveryone: Boolean(item.can_delete_for_everyone),
     reply: item.reply ? {
       id: Number(item.reply.id),
-      senderName: item.reply.sender_name,
-      message: item.reply.message || '',
+      senderName: cleanText(item.reply.sender_name),
+      message: cleanText(item.reply.message || ''),
       messageType: item.reply.message_type || 'text',
     } : null,
     createdAt: item.created_at,
@@ -378,14 +383,14 @@ export function useConversations(search = '') {
       orderId: String(item.order_id),
       otherUser: {
         id: Number(item.other_user.id),
-        name: item.other_user.name,
+        name: cleanText(item.other_user.name),
         profileImage: item.other_user.profile_image ? mediaUrl(item.other_user.profile_image, '') : null,
         isOnline: Boolean(item.other_user.is_online),
         lastSeenAt: item.other_user.last_seen_at || null,
       },
       lastMessage: item.last_message ? {
         id: Number(item.last_message.id),
-        message: item.last_message.message || '',
+        message: cleanText(item.last_message.message || ''),
         messageType: item.last_message.message_type,
         createdAt: item.last_message.created_at,
       } : null,

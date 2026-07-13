@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications as notificationsApi } from '../api'
 import { useAuthStore } from '../stores/authStore'
 import { publicAsset } from '../utils/assets'
+import { cleanText } from '../utils/text'
 import type { AppNotification, ChatMessage } from '../types/marketplace'
 import { mapChatMessage, queryKeys } from './useMarketplace'
 
@@ -113,8 +114,8 @@ export function useRealtimeNotifications() {
     const item = payload.data
     const notification: AppNotification = {
       id: Number(item.id),
-      title: item.title,
-      content: item.content,
+      title: cleanText(item.title),
+      content: cleanText(item.content),
       type: item.notification_type,
       read: Boolean(item.read),
       createdAt: item.created_at,

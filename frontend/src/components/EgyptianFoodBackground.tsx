@@ -2,10 +2,26 @@ import { useEffect, useMemo, useState } from 'react'
 import { imageFallback, publicAsset } from '../utils/assets'
 
 const images = [
-  '/backgrounds/trades/15-network.jpg',
-  '/backgrounds/trades/11-aluminum.jpg',
-  '/backgrounds/trades/08-ac-technician.jpg',
   '/backgrounds/trades/01-carpenter.jpg',
+  '/backgrounds/trades/02-electrician.jpg',
+  '/backgrounds/trades/03-plumber.jpg',
+  '/backgrounds/trades/04-painter.jpg',
+  '/backgrounds/trades/05-blacksmith.jpg',
+  '/backgrounds/trades/06-tiler.jpg',
+  '/backgrounds/trades/07-mason.jpg',
+  '/backgrounds/trades/08-ac-technician.jpg',
+  '/backgrounds/trades/09-appliance-repair.jpg',
+  '/backgrounds/trades/10-upholsterer.jpg',
+  '/backgrounds/trades/11-aluminum.jpg',
+  '/backgrounds/trades/12-glass.jpg',
+  '/backgrounds/trades/13-gypsum.jpg',
+  '/backgrounds/trades/14-locksmith.jpg',
+  '/backgrounds/trades/15-network.jpg',
+  '/backgrounds/trades/16-cleaning.jpg',
+  '/backgrounds/trades/17-roofing.jpg',
+  '/backgrounds/trades/18-mechanic.jpg',
+  '/backgrounds/trades/19-mobile-repair.jpg',
+  '/backgrounds/trades/20-tailor.jpg',
 ]
 
 export default function WorkerBackground() {

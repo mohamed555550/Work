@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { products as productsApi, sellers as sellersApi } from '../api'
 import ArabicTimeSelect from '../components/ArabicTimeSelect'
-import { findTrade, findTradeCategory, trades } from '../data/trades'
+import { findTrade, findTradeCategory, selectableTrades, trades } from '../data/trades'
 import { queryClient } from '../lib/queryClient'
 import { imageFallback } from '../utils/assets'
 
@@ -40,8 +40,8 @@ export default function SellerDashboard() {
     name: '',
     description: '',
     price: '',
-    trade: 'carpenter',
-    trade_category: 'doors-windows',
+    trade: 'all',
+    trade_category: 'all',
     is_available: true,
   })
 
@@ -210,7 +210,7 @@ export default function SellerDashboard() {
             <textarea required minLength={15} rows={2} value={details.pickup_address} onChange={(event) => setDetails({ ...details, pickup_address: event.target.value })} placeholder="عنوان شغلك بالتفصيل" className="field-control" />
             <input type="number" min="0" max="80" value={details.experience_years} onChange={(event) => setDetails({ ...details, experience_years: event.target.value })} placeholder="سنوات الخبرة" className="field-control" />
             <div className="grid max-h-60 gap-2 overflow-y-auto rounded-2xl bg-white/70 p-3 sm:grid-cols-2">
-              {trades.flatMap((trade) => trade.categories.map((category) => {
+              {selectableTrades.flatMap((trade) => trade.categories.map((category) => {
                 const value = `${trade.id}:${category.id}`
                 return (
                   <label key={value} className="flex items-center gap-2 text-xs font-bold">

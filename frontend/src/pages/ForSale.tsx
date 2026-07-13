@@ -14,8 +14,8 @@ export default function ForSale() {
     governorate,
     center,
     listing_type: 'sale',
-    ...(selectedTrade ? { trade: selectedTrade } : {}),
-    ...(selectedCategory ? { trade_category: selectedCategory } : {}),
+    ...(selectedTrade && selectedTrade !== 'all' ? { trade: selectedTrade } : {}),
+    ...(selectedCategory && selectedCategory !== 'all' ? { trade_category: selectedCategory } : {}),
   }), [center, governorate, selectedCategory, selectedTrade])
   const query = useProducts(params)
   const products = query.data?.products || []
@@ -82,7 +82,7 @@ export default function ForSale() {
             })}
           </div>
 
-          {activeTrade && (
+          {activeTrade && activeTrade.id !== 'all' && (
             <div className="mt-4 rounded-2xl border border-[#dfe7f3] bg-[#f8fbff] p-3">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="text-xs font-black text-slate-900">تخصصات {activeTrade.name}</p>

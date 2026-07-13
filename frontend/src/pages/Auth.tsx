@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { auth } from '../api'
 import ArabicTimeSelect from '../components/ArabicTimeSelect'
 import { egyptGovernorates } from '../data/egyptLocations'
-import { trades } from '../data/trades'
+import { selectableTrades as trades } from '../data/trades'
 import { useLocations } from '../hooks/useMarketplace'
 import { dataOf, errorMessage } from '../services/response'
 import { useAuthStore } from '../stores/authStore'
@@ -120,6 +120,8 @@ function LoginForm({ onForgot }: { onForgot: () => void }) {
 }
 
 function RegisterForm() {
+  const navigate = useNavigate()
+  const setSession = useAuthStore((state) => state.setSession)
   const [message, setMessage] = useState('')
   const [serverError, setServerError] = useState('')
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterValues>({ resolver: zodResolver(registerSchema) })
@@ -127,7 +129,13 @@ function RegisterForm() {
     setServerError('')
     try {
       const response = await auth.register(values)
-      setMessage(response.data.message)
+      const session = dataOf<Session>(response)
+      if (session.access && session.refresh && session.user) {
+        setSession(session)
+        navigate('/', { replace: true })
+      } else {
+        setMessage(response.data.message)
+      }
     } catch (error) {
       setServerError(errorMessage(error, 'تعذر إنشاء الحساب'))
     }
@@ -151,6 +159,8 @@ function RegisterForm() {
 }
 
 function WorkerRegisterForm() {
+  const navigate = useNavigate()
+  const setSession = useAuthStore((state) => state.setSession)
   const locationsQuery = useLocations()
   const fallbackLocations = useMemo(() => localLocations(), [])
   const locations = locationsQuery.data?.length ? locationsQuery.data : fallbackLocations
@@ -194,7 +204,13 @@ function WorkerRegisterForm() {
         professions: [{ trade: profession_trade, category: profession_category }],
         age: Number(values.age),
       })
-      setMessage(response.data.message)
+      const session = dataOf<Session>(response)
+      if (session.access && session.refresh && session.user) {
+        setSession(session)
+        navigate('/seller', { replace: true })
+      } else {
+        setMessage(response.data.message)
+      }
     } catch (error) {
       setServerError(errorMessage(error, 'تعذر إنشاء حساب العامل'))
     }
@@ -314,16 +330,19 @@ function WorkerRegisterForm() {
 
 function ForgotPassword({ onBack }: { onBack: () => void }) {
   const [message, setMessage] = useState('')
+  const [resetUrl, setResetUrl] = useState('')
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ForgotValues>({ resolver: zodResolver(forgotSchema) })
   const submit = handleSubmit(async (values) => {
     const response = await auth.forgotPassword(values)
     setMessage(response.data.message)
+    setResetUrl(response.data?.data?.reset_url || '')
   })
   return (
     <form onSubmit={submit} className="space-y-3">
       <p className="text-sm leading-6 text-stone-600">أدخل بريدك وسنرسل رابطًا آمنًا لإعادة تعيين كلمة المرور.</p>
       <div><input {...register('email')} type="email" placeholder="البريد الإلكتروني" className={inputClass} /><FieldError message={errors.email?.message} /></div>
       {message && <p className="rounded-xl bg-green-50 p-3 text-sm text-green-700">{message}</p>}
+      {resetUrl && <a href={resetUrl} className="block rounded-xl bg-brand-50 p-3 text-center text-sm font-black text-brand-700">فتح رابط تغيير كلمة السر</a>}
       <button disabled={isSubmitting} className="w-full rounded-xl bg-stone-950 py-3 font-black text-white">إرسال الرابط</button>
       <button type="button" onClick={onBack} className="w-full text-sm font-bold text-brand-700">العودة للدخول</button>
     </form>

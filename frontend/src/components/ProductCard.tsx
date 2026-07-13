@@ -21,6 +21,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   const trade = product.trade ? findTrade(product.trade) : null
   const tradeCategory = product.trade ? findTradeCategory(product.trade, product.tradeCategory) : null
   const price = Number(product.price || 0)
+  const showPrice = product.listingType === 'sale'
 
   async function openChat() {
     if (!token) return navigate('/auth')
@@ -56,9 +57,11 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
         <div className="mt-auto space-y-2">
           <div className="flex items-center justify-between gap-2 text-xs">
             <span className="truncate text-stone-500">{product.sellerName}</span>
-            <span className="shrink-0 font-black text-forest-800">
-              {price > 0 ? `${price.toLocaleString('ar-EG')} جنيه` : 'السعر بالاتفاق'}
-            </span>
+            {showPrice && (
+              <span className="shrink-0 font-black text-forest-800">
+                {price > 0 ? `${price.toLocaleString('ar-EG')} جنيه` : 'السعر بالاتفاق'}
+              </span>
+            )}
           </div>
           <button
             disabled={startChat.isPending}

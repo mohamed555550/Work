@@ -21,7 +21,7 @@ from .serializers import (
     UserSerializer,
     SuggestionSerializer,
 )
-from .emails import send_password_reset_email, send_verification_email
+from .emails import _token_url, send_password_reset_email, send_verification_email
 from .tokens import email_verification_token
 from common.throttles import AuthRateThrottle
 from common.utils import error_response, success_response
@@ -64,9 +64,15 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         if settings.EMAIL_VERIFICATION_REQUIRED:
-            send_verification_email(user)
+            try:
+                send_verification_email(user)
+            except Exception:
+                logger.exception('Unable to send verification email for user %s', user.pk)
+        refresh = RefreshToken.for_user(user)
         return success_response(
             data={
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
                 'user': UserSerializer(user, context={'request': request}).data,
             },
             message=self.success_message,
@@ -112,9 +118,18 @@ class PasswordResetRequestView(generics.GenericAPIView):
             email__iexact=serializer.validated_data['email'],
             is_active=True,
         ).first()
+        reset_url = None
         if user:
-            send_password_reset_email(user)
-        return success_response(message='إذا كان البريد مسجلاً فستصلك رسالة إعادة التعيين')
+            try:
+                send_password_reset_email(user)
+            except Exception:
+                logger.exception('Unable to send password reset email for user %s', user.pk)
+            if settings.EMAIL_BACKEND.endswith('console.EmailBackend') or not settings.EMAIL_HOST_USER:
+                reset_url = _token_url('/auth/reset-password', user)
+        return success_response(
+            data={'reset_url': reset_url} if reset_url else {},
+            message='إذا كان البريد مسجلاً فستصلك رسالة إعادة التعيين',
+        )
 
 
 class PasswordResetConfirmView(generics.GenericAPIView):

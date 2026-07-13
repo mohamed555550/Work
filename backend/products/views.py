@@ -59,9 +59,9 @@ class ProductListView(generics.ListAPIView):
         if listing_type:
             queryset = queryset.filter(listing_type=listing_type)
         if trade:
-            queryset = queryset.filter(trade=trade)
+            queryset = queryset.filter(Q(trade=trade) | Q(trade='all'))
         if trade_category:
-            queryset = queryset.filter(trade_category=trade_category)
+            queryset = queryset.filter(Q(trade_category=trade_category) | Q(trade='all') | Q(trade_category='all'))
         if seller:
             if not seller.isdigit():
                 raise ValidationError('معرّف العامل غير صحيح')

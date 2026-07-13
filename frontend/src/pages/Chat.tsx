@@ -5,7 +5,9 @@ import {
   useConversations,
   useDeleteMessage,
   useSendMessage,
+  queryKeys,
 } from '../hooks/useMarketplace'
+import { queryClient } from '../lib/queryClient'
 import { useOrderChatSocket } from '../hooks/useRealtime'
 import { useAuthStore } from '../stores/authStore'
 import { imageFallback } from '../utils/assets'
@@ -41,7 +43,8 @@ export default function Chat() {
   const videoInput = useRef<HTMLInputElement | null>(null)
   const profile = useAuthStore((state) => state.profile)
   const conversations = useConversations(search)
-  const orderMessages = useChat(orderId).data || []
+  const chatQuery = useChat(orderId)
+  const orderMessages = chatQuery.data || []
   const sendMessageRest = useSendMessage(orderId)
   const deleteMessage = useDeleteMessage(orderId)
   const socket = useOrderChatSocket(orderId)
@@ -59,6 +62,15 @@ export default function Chat() {
   useEffect(() => {
     messagesEnd.current?.scrollIntoView({ behavior: 'smooth' })
   }, [orderMessages.length, socket.typing])
+
+  useEffect(() => {
+    if (!orderId || socket.connected) return
+    const timer = window.setInterval(() => {
+      chatQuery.refetch()
+      conversations.refetch()
+    }, 2000)
+    return () => window.clearInterval(timer)
+  }, [chatQuery, conversations, orderId, socket.connected])
 
   useEffect(() => () => {
     if (typingTimer.current) window.clearTimeout(typingTimer.current)
@@ -85,11 +97,39 @@ export default function Chat() {
     const text = message.trim()
     if ((!text && !attachment) || !orderId) return
     socket.sendTyping(false)
+    const optimisticId = Date.now()
     if (!attachment && socket.sendMessage(text, replyTo?.id)) {
       setMessage('')
       setReplyTo(null)
       setEmojiOpen(false)
       return
+    }
+    if (!attachment && profile) {
+      queryClient.setQueryData(queryKeys.chat(orderId), (current: ChatMessage[] = []) => ([
+        ...current,
+        {
+          id: optimisticId,
+          orderId,
+          senderId: profile.id,
+          senderName: profile.username,
+          message: text,
+          messageType: 'text',
+          image: null,
+          video: null,
+          status: 'sent',
+          deliveredAt: null,
+          readAt: null,
+          isDeleted: false,
+          canDeleteForEveryone: false,
+          reply: replyTo ? {
+            id: replyTo.id,
+            senderName: replyTo.senderName,
+            message: replyTo.message,
+            messageType: replyTo.messageType,
+          } : null,
+          createdAt: new Date().toISOString(),
+        },
+      ]))
     }
     await sendMessageRest.mutateAsync({
       message: text || undefined,
@@ -102,6 +142,7 @@ export default function Chat() {
     setAttachment(null)
     setReplyTo(null)
     setEmojiOpen(false)
+    chatQuery.refetch()
   }
 
   const otherOnline = socket.otherOnline ?? selectedConversation?.otherUser.isOnline ?? false

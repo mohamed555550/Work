@@ -9,7 +9,8 @@ from .tokens import email_verification_token
 def _token_url(path: str, user, generator=default_token_generator) -> str:
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = generator.make_token(user)
-    return f"{settings.FRONTEND_URL.rstrip('/')}{path}?uid={uid}&token={token}"
+    route = path if path.startswith('/') else f'/{path}'
+    return f"{settings.FRONTEND_URL.rstrip('/')}/#{route}?uid={uid}&token={token}"
 
 
 def send_verification_email(user) -> None:
