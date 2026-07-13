@@ -9,6 +9,8 @@ from .views import (
     SellerFavoriteView,
     SellerFollowView,
     GovernorateListView,
+    SellerWorkGalleryDeleteView,
+    SellerWorkGalleryView,
 )
 
 urlpatterns = [
@@ -17,6 +19,8 @@ urlpatterns = [
     path('', SellerPublicListView.as_view(), name='seller_public_list'),
     path('<int:pk>/', SellerPublicDetailView.as_view(), name='seller_public_detail'),
     path('profile/', SellerProfileView.as_view(), name='seller_profile'),
+    path('profile/gallery/', SellerWorkGalleryView.as_view(), name='seller_work_gallery'),
+    path('profile/gallery/<int:pk>/', SellerWorkGalleryDeleteView.as_view(), name='seller_work_gallery_delete'),
     path('admin/pending/', SellerAdminListView.as_view(), name='seller_pending_list'),
     path('<int:pk>/approve/', SellerApproveView.as_view(), name='seller_approve'),
     path('<int:pk>/follow/', SellerFollowView.as_view(), name='seller_follow'),

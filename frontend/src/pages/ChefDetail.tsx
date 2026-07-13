@@ -22,6 +22,7 @@ export default function ChefDetail() {
 
   const worker = workerQuery.data
   const products = productsQuery.data?.products || []
+  const workGallery = worker.workGallery || []
 
   async function openChat() {
     setChatError('')
@@ -67,6 +68,23 @@ export default function ChefDetail() {
           </div>
         </div>
       </section>
+
+      {workGallery.length > 0 && (
+        <section className="mx-auto mt-10 max-w-6xl px-4 sm:px-6 lg:px-8">
+          <p className="eyebrow">شغل سابق</p>
+          <h2 className="mt-1 text-2xl font-extrabold text-forest-900">معرض شغل {worker.name}</h2>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {workGallery.map((item) => (
+              <article key={item.id} className="overflow-hidden rounded-2xl border border-[#e9e5de] bg-white shadow-card">
+                <img src={item.image} alt={item.caption} onError={imageFallback} className="h-56 w-full object-cover" />
+                <div className="p-4">
+                  <p className="text-sm font-bold leading-7 text-stone-700">{item.caption}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto mt-10 max-w-6xl px-4 sm:px-6 lg:px-8">
         <p className="eyebrow">للبيع</p>

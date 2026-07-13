@@ -25,6 +25,8 @@ export default function SellerDashboard() {
   const [productImages, setProductImages] = useState<File[]>([])
   const [coverImage, setCoverImage] = useState<File | null>(null)
   const [profileImage, setProfileImage] = useState<File | null>(null)
+  const [workImage, setWorkImage] = useState<File | null>(null)
+  const [workCaption, setWorkCaption] = useState('')
   const [saving, setSaving] = useState(false)
   const [details, setDetails] = useState({
     name: '',
@@ -119,6 +121,40 @@ export default function SellerDashboard() {
       setProfileImage(null)
     } catch (reason: any) {
       setError(errorText(reason, 'تعذر تحديث الصور'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function addWorkCard(event: FormEvent) {
+    event.preventDefault()
+    if (!workImage || !workCaption.trim()) return
+    setSaving(true)
+    setError('')
+    try {
+      const payload = new FormData()
+      payload.append('image', workImage)
+      payload.append('caption', workCaption.trim())
+      await sellersApi.addWorkCard(payload)
+      setWorkImage(null)
+      setWorkCaption('')
+      await load()
+    } catch (reason: any) {
+      setError(errorText(reason, 'تعذر إضافة كارت الشغل'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function removeWorkCard(id: number) {
+    if (!window.confirm('هل تريد حذف كارت الشغل ده؟')) return
+    setSaving(true)
+    setError('')
+    try {
+      await sellersApi.removeWorkCard(id)
+      await load()
+    } catch (reason: any) {
+      setError(errorText(reason, 'تعذر حذف كارت الشغل'))
     } finally {
       setSaving(false)
     }
@@ -248,6 +284,51 @@ export default function SellerDashboard() {
             </div>
             <button disabled={saving || (!coverImage && !profileImage)} className="primary-button mt-3">حفظ الصور</button>
           </form>
+
+          <section className="surface-card p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-black">معرض الشغل</h2>
+                <p className="mt-1 text-xs text-stone-500">ارفع كروت لأعمالك السابقة، بحد أقصى 30 كارت.</p>
+              </div>
+              <span className="rounded-full bg-forest-50 px-3 py-1 text-xs font-black text-forest-800">
+                {(profile?.work_gallery?.length || 0).toLocaleString('ar-EG')} / ٣٠
+              </span>
+            </div>
+            <form onSubmit={addWorkCard} className="mt-3 grid gap-3 rounded-2xl border border-dashed border-stone-200 p-3">
+              <input
+                required
+                value={workCaption}
+                maxLength={240}
+                onChange={(event) => setWorkCaption(event.target.value)}
+                placeholder="مثال: دي شقة عريس متشطبة بلون أوف وايت وتشطيب مودرن"
+                className="field-control"
+              />
+              <input
+                required
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={(event) => setWorkImage(event.target.files?.[0] || null)}
+                className="block w-full text-xs"
+              />
+              <button disabled={saving || !workImage || !workCaption.trim() || (profile?.work_gallery?.length || 0) >= 30} className="primary-button">
+                إضافة كارت شغل
+              </button>
+            </form>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {(profile?.work_gallery || []).map((item: any) => (
+                <article key={item.id} className="overflow-hidden rounded-2xl border border-stone-100 bg-white shadow-lg">
+                  <img src={item.image} alt={item.caption} onError={imageFallback} className="h-40 w-full object-cover" />
+                  <div className="p-3">
+                    <p className="min-h-12 text-sm font-bold leading-6 text-stone-700">{item.caption}</p>
+                    <button type="button" onClick={() => removeWorkCard(item.id)} disabled={saving} className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700">
+                      حذف الكارت
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Stat value={products.length} label="معروضات للبيع" />

@@ -71,6 +71,13 @@ export function fallbackMealImage(_name: string, _category?: Category, id = 0) {
   return fallbackTradeImage(undefined, id)
 }
 function mapSeller(raw: any): Seller {
+  const workGallery = Array.isArray(raw.work_gallery) ? raw.work_gallery.map((item: any) => ({
+    id: Number(item.id),
+    image: mediaUrl(item.image, fallbackTradeImage(undefined, Number(raw.id))),
+    caption: cleanText(item.caption || ''),
+    sortOrder: Number(item.sort_order || 0),
+    createdAt: item.created_at || '',
+  })) : []
   return {
     id: Number(raw.id),
     name: cleanText(raw.name),
@@ -98,6 +105,7 @@ function mapSeller(raw: any): Seller {
     isOnline: Boolean(raw.is_online),
     isFollowing: Boolean(raw.is_following),
     isFavorite: Boolean(raw.is_favorite),
+    workGallery,
   }
 }
 

@@ -6,13 +6,14 @@ from django.db.models import Avg, Count, Exists, OuterRef, Q
 from rest_framework.filters import SearchFilter
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from django.shortcuts import get_object_or_404
-from .models import Follower, Governorate, SellerProfile
+from .models import Follower, Governorate, KitchenGallery, SellerProfile
 from .serializers import (
     GovernorateSerializer,
     SellerApplicationSerializer,
     SellerProfileSerializer,
     SellerPublicSerializer,
     SellerActionResultSerializer,
+    WorkGallerySerializer,
 )
 from common.utils import success_response, error_response
 from audit_logs.models import AuditLog
@@ -21,7 +22,7 @@ from favorites.models import Favorite
 
 
 def public_seller_queryset(user=None):
-    queryset = SellerProfile.objects.filter(approved='approved').select_related('user').annotate(
+    queryset = SellerProfile.objects.filter(approved='approved').select_related('user').prefetch_related('kitchen_gallery').annotate(
         rating_value=Avg('products__reviews__rating'),
         reviews_count_value=Count('products__reviews', distinct=True),
         followers_count_value=Count('followers', distinct=True),
@@ -164,6 +165,40 @@ class SellerProfileView(generics.RetrieveUpdateAPIView):
             data=self.get_serializer(instance).data,
             message='تم تحديث صور وبيانات العامل',
         )
+
+
+class SellerWorkGalleryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def post(self, request):
+        profile = get_object_or_404(SellerProfile, user=request.user)
+        if profile.kitchen_gallery.count() >= 30:
+            return error_response('يمكن إضافة 30 كارت شغل فقط', status=400)
+        serializer = WorkGallerySerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        item = serializer.save(
+            chef=profile,
+            sort_order=profile.kitchen_gallery.count(),
+        )
+        return success_response(
+            data=WorkGallerySerializer(item, context={'request': request}).data,
+            message='تم إضافة كارت الشغل',
+        )
+
+
+class SellerWorkGalleryDeleteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk):
+        profile = get_object_or_404(SellerProfile, user=request.user)
+        item = get_object_or_404(KitchenGallery, pk=pk, chef=profile)
+        item.delete()
+        for index, gallery_item in enumerate(profile.kitchen_gallery.order_by('sort_order', 'id')):
+            if gallery_item.sort_order != index:
+                gallery_item.sort_order = index
+                gallery_item.save(update_fields=['sort_order'])
+        return success_response(message='تم حذف كارت الشغل')
 
 
 class SellerAdminListView(generics.ListAPIView):

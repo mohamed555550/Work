@@ -49,6 +49,15 @@ export interface Seller {
   isOnline: boolean
   isFollowing: boolean
   isFavorite: boolean
+  workGallery: WorkGalleryItem[]
+}
+
+export interface WorkGalleryItem {
+  id: number
+  image: string
+  caption: string
+  sortOrder: number
+  createdAt: string
 }
 
 export interface Center {

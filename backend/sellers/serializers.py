@@ -3,7 +3,7 @@ import hmac
 
 from django.conf import settings
 from rest_framework import serializers
-from .models import Center, Governorate, SellerProfile
+from .models import Center, Governorate, KitchenGallery, SellerProfile
 
 
 class CenterSerializer(serializers.ModelSerializer):
@@ -50,6 +50,7 @@ class SellerProfileSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
+    work_gallery = serializers.SerializerMethodField()
 
     class Meta:
         model = SellerProfile
@@ -58,7 +59,7 @@ class SellerProfileSerializer(serializers.ModelSerializer):
             'food_description', 'professions', 'pickup_address', 'cover_image', 'profile_image',
             'age', 'national_id_last4', 'experience_years', 'is_open',
             'work_start_time', 'work_end_time', 'approved',
-            'created_at', 'updated_at',
+            'work_gallery', 'created_at', 'updated_at',
         ]
         read_only_fields = ['national_id_last4', 'approved', 'created_at', 'updated_at']
 
@@ -107,6 +108,31 @@ class SellerProfileSerializer(serializers.ModelSerializer):
             instance.user.save(update_fields=['profile_image'])
         return super().update(instance, validated_data)
 
+    def get_work_gallery(self, obj):
+        return WorkGallerySerializer(obj.kitchen_gallery.all(), many=True, context=self.context).data
+
+
+class WorkGallerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KitchenGallery
+        fields = ['id', 'image', 'caption', 'sort_order', 'created_at']
+        read_only_fields = ['id', 'sort_order', 'created_at']
+
+    def validate_image(self, value):
+        if value and value.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError('حجم الصورة يجب ألا يتجاوز 10 ميجابايت')
+        if value and getattr(value, 'content_type', '') not in {
+            'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+        }:
+            raise serializers.ValidationError('صيغة الصورة غير مدعومة')
+        return value
+
+    def validate_caption(self, value):
+        value = value.strip()
+        if len(value) < 3:
+            raise serializers.ValidationError('اكتب وصفا أوضح للشغل')
+        return value
+
 
 class SellerPublicSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
@@ -118,6 +144,7 @@ class SellerPublicSerializer(serializers.ModelSerializer):
     profile_image = serializers.ImageField(source='user.profile_image', read_only=True)
     is_following = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
+    work_gallery = serializers.SerializerMethodField()
 
     class Meta:
         model = SellerProfile
@@ -126,7 +153,7 @@ class SellerPublicSerializer(serializers.ModelSerializer):
             'professions', 'pickup_address', 'cover_image', 'profile_image', 'rating', 'reviews_count',
             'followers_count', 'order_count', 'product_count', 'experience_years',
             'is_open', 'work_start_time', 'work_end_time', 'is_online',
-            'is_following', 'is_favorite',
+            'is_following', 'is_favorite', 'work_gallery',
         ]
         read_only_fields = fields
 
@@ -150,6 +177,9 @@ class SellerPublicSerializer(serializers.ModelSerializer):
 
     def get_is_favorite(self, obj) -> bool:
         return bool(getattr(obj, 'is_favorite_value', False))
+
+    def get_work_gallery(self, obj):
+        return WorkGallerySerializer(obj.kitchen_gallery.all(), many=True, context=self.context).data
 
 
 class SellerApplicationSerializer(serializers.ModelSerializer):
