@@ -24,6 +24,13 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     pickup_time = models.DateTimeField(default=timezone.now)
     pickup_address = models.CharField(max_length=500, default='')
+    service_request = models.ForeignKey(
+        'orders.ServiceRequest',
+        on_delete=models.SET_NULL,
+        related_name='orders',
+        blank=True,
+        null=True,
+    )
     idempotency_key = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -81,3 +88,47 @@ class OrderItem(models.Model):
     @property
     def total_price(self):
         return self.unit_price * self.quantity
+
+
+class ServiceRequest(models.Model):
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('in_progress', 'In progress'),
+        ('closed', 'Closed'),
+    ]
+
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='service_requests')
+    title = models.CharField(max_length=160)
+    description = models.TextField(max_length=2000)
+    governorate = models.CharField(max_length=120)
+    center = models.CharField(max_length=120)
+    trade = models.CharField(max_length=80, blank=True, default='')
+    trade_category = models.CharField(max_length=80, blank=True, default='')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'service_requests'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'governorate', 'center', '-created_at'], name='service_req_location_idx'),
+            models.Index(fields=['customer', 'status', '-created_at'], name='service_req_customer_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.title} by {self.customer.username}'
+
+
+class ServiceRequestImage(models.Model):
+    request = models.ForeignKey(ServiceRequest, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='service-requests/images/')
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'service_request_images'
+        ordering = ['sort_order', 'id']
+        indexes = [
+            models.Index(fields=['request', 'sort_order'], name='service_req_image_sort_idx'),
+        ]

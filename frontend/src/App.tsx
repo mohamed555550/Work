@@ -30,6 +30,7 @@ const Notifications = lazy(() => import('./pages/Notifications'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Search = lazy(() => import('./pages/Search'))
+const ServiceRequests = lazy(() => import('./pages/ServiceRequests'))
 const SellerDashboard = lazy(() => import('./pages/SellerDashboard'))
 const SupportChat = lazy(() => import('./pages/SupportChat'))
 const ForSale = lazy(() => import('./pages/ForSale'))
@@ -94,6 +95,7 @@ function ApplicationShell() {
             {[
               ['/', 'الرئيسية'],
               ['/chefs', 'الصنايعية'],
+              ['/requests', 'اطلب صنايعي'],
               ['/search', 'البحث'],
               ['/for-sale', 'للبيع'],
               ['/messages', 'الرسائل'],
@@ -155,6 +157,7 @@ function ApplicationShell() {
           <Suspense fallback={<div className="p-8 text-center">جاري تحميل الصفحة...</div>}><Routes>
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/requests" element={<ProtectedRoute><ServiceRequests /></ProtectedRoute>} />
             <Route path="/for-sale" element={<ForSale />} />
             <Route path="/chefs" element={<Chefs />} />
             <Route path="/chefs/:id" element={<ChefDetail />} />

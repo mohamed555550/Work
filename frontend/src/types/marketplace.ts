@@ -131,6 +131,29 @@ export interface Order {
   pickupAddress: string
 }
 
+export interface ServiceRequestImage {
+  id: number
+  image: string
+  sortOrder: number
+  createdAt: string
+}
+
+export interface ServiceRequest {
+  id: number
+  title: string
+  description: string
+  governorate: string
+  center: string
+  trade: string
+  tradeCategory: string
+  status: 'open' | 'in_progress' | 'closed'
+  customerName: string
+  images: ServiceRequestImage[]
+  chatOrderIds: number[]
+  createdAt: string
+  updatedAt: string
+}
+
 export interface AppNotification {
   id: number
   title: string

@@ -3,11 +3,77 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework import serializers
-from .models import Order, OrderItem
+from .models import Order, OrderItem, ServiceRequest, ServiceRequestImage
 from products.models import Product
 from audit_logs.models import AuditLog
 from notifications.models import Notification
 from cart.models import CartItem
+
+
+MAX_SERVICE_REQUEST_IMAGES = 12
+MAX_SERVICE_REQUEST_IMAGE_SIZE = 10 * 1024 * 1024
+SERVICE_REQUEST_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+
+
+class ServiceRequestImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceRequestImage
+        fields = ['id', 'image', 'sort_order', 'created_at']
+        read_only_fields = fields
+
+
+class ServiceRequestSerializer(serializers.ModelSerializer):
+    images = ServiceRequestImageSerializer(many=True, read_only=True)
+    customer_name = serializers.SerializerMethodField()
+    chat_order_ids = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ServiceRequest
+        fields = [
+            'id', 'title', 'description', 'governorate', 'center',
+            'trade', 'trade_category', 'status', 'customer_name',
+            'images', 'chat_order_ids', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'status', 'customer_name', 'images', 'chat_order_ids', 'created_at', 'updated_at']
+
+    def get_customer_name(self, obj):
+        return obj.customer.get_full_name() or obj.customer.username
+
+    def get_chat_order_ids(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return []
+        orders = obj.orders.all()
+        if request.user.role == 'seller' and hasattr(request.user, 'seller_profile'):
+            orders = orders.filter(seller=request.user.seller_profile)
+        elif not request.user.is_staff:
+            orders = orders.filter(user=request.user)
+        return list(orders.values_list('id', flat=True))
+
+    def validate_title(self, value):
+        value = value.strip()
+        if len(value) < 3:
+            raise serializers.ValidationError('اكتب عنوانا أوضح للمشكلة')
+        return value
+
+    def validate_description(self, value):
+        value = value.strip()
+        if len(value) < 10:
+            raise serializers.ValidationError('اكتب وصفا أوضح للمشكلة')
+        return value
+
+    def create(self, validated_data):
+        return ServiceRequest.objects.create(customer=self.context['request'].user, **validated_data)
+
+
+def validate_service_request_images(files):
+    if len(files) > MAX_SERVICE_REQUEST_IMAGES:
+        raise serializers.ValidationError({'images': f'يمكن رفع حتى {MAX_SERVICE_REQUEST_IMAGES} صورة في الطلب الواحد'})
+    for upload in files:
+        if upload.size > MAX_SERVICE_REQUEST_IMAGE_SIZE:
+            raise serializers.ValidationError({'images': 'حجم كل صورة يجب ألا يتجاوز 10 ميجابايت'})
+        if getattr(upload, 'content_type', '') not in SERVICE_REQUEST_IMAGE_TYPES:
+            raise serializers.ValidationError({'images': 'صيغة الصور يجب أن تكون JPG أو PNG أو WebP أو GIF'})
 
 
 class OrderItemSerializer(serializers.ModelSerializer):

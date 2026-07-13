@@ -50,6 +50,10 @@ export const orders = {
   list: () => api.get('/orders/'),
   detail: (id: number) => api.get(`/orders/${id}/`),
   create: (payload: unknown) => api.post('/orders/create/', payload),
+  serviceRequests: () => api.get('/orders/service-requests/'),
+  createServiceRequest: (payload: FormData) => api.post('/orders/service-requests/', payload, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  openServiceRequests: () => api.get('/orders/service-requests/open/'),
+  startServiceRequestChat: (id: number) => api.post(`/orders/service-requests/${id}/chat/`),
   updateStatus: (id: number, status: string) => api.patch(`/orders/${id}/status/`, { status }),
   cancel: (id: number) => api.patch(`/orders/${id}/cancel/`),
 }
