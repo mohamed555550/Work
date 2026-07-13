@@ -8,6 +8,10 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from users.views import LoginView, LogoutView, ProfileView, RefreshView, RegisterView
 
 
+def wants_frontend(request):
+    return request.method == 'GET' and 'text/html' in request.headers.get('Accept', '')
+
+
 def serve_frontend_index(_request):
     index_path = settings.FRONTEND_DIST_DIR / 'index.html'
     if not index_path.exists():
@@ -19,19 +23,30 @@ def serve_frontend_asset(request, path):
     return serve_static(request, path, document_root=settings.FRONTEND_DIST_DIR)
 
 
+def api_or_frontend(api_view):
+    view = api_view.as_view()
+
+    def wrapped(request, *args, **kwargs):
+        if wants_frontend(request):
+            return serve_frontend_index(request)
+        return view(request, *args, **kwargs)
+
+    return wrapped
+
+
 auth_aliases = [
-    path('register', RegisterView.as_view(), name='register_no_slash'),
-    path('register/', RegisterView.as_view(), name='register_slash'),
-    path('login', LoginView.as_view(), name='login_no_slash'),
-    path('login/', LoginView.as_view(), name='login_slash'),
+    path('register', api_or_frontend(RegisterView), name='register_no_slash'),
+    path('register/', api_or_frontend(RegisterView), name='register_slash'),
+    path('login', api_or_frontend(LoginView), name='login_no_slash'),
+    path('login/', api_or_frontend(LoginView), name='login_slash'),
     path('logout', LogoutView.as_view(), name='logout_no_slash'),
     path('logout/', LogoutView.as_view(), name='logout_slash'),
     path('refresh', RefreshView.as_view(), name='refresh_no_slash'),
     path('refresh/', RefreshView.as_view(), name='refresh_slash'),
     path('me', ProfileView.as_view(), name='me_no_slash'),
     path('me/', ProfileView.as_view(), name='me_slash'),
-    path('profile', ProfileView.as_view(), name='profile_no_slash'),
-    path('profile/', ProfileView.as_view(), name='profile_slash'),
+    path('profile', api_or_frontend(ProfileView), name='profile_no_slash'),
+    path('profile/', api_or_frontend(ProfileView), name='profile_slash'),
 ]
 
 urlpatterns = [
