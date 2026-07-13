@@ -76,6 +76,7 @@ export interface Product {
   ingredients: string
   price: number
   image: string
+  images: string[]
   category: Category
   preparationTime: number
   rating: number

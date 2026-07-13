@@ -22,7 +22,7 @@ export default function SellerDashboard() {
   const [products, setProducts] = useState<any[]>([])
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [image, setImage] = useState<File | null>(null)
+  const [productImages, setProductImages] = useState<File[]>([])
   const [coverImage, setCoverImage] = useState<File | null>(null)
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
@@ -140,10 +140,10 @@ export default function SellerDashboard() {
       payload.append('category', newProduct.trade_category)
       payload.append('preparation_time', '30')
       payload.append('is_available', String(newProduct.is_available))
-      if (image) payload.append('image', image)
+      productImages.forEach((file) => payload.append('images', file))
       await productsApi.create(payload)
       setShowForm(false)
-      setImage(null)
+      setProductImages([])
       setNewProduct({ ...newProduct, name: '', description: '', price: '' })
       await queryClient.invalidateQueries({ queryKey: ['products'] })
       await load()
@@ -292,7 +292,18 @@ export default function SellerDashboard() {
               </label>
               <label className="rounded-xl border border-dashed border-orange-200 p-3 text-sm text-stone-600">
                 صورة المعروض
-                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setImage(event.target.files?.[0] || null)} className="mt-2 block w-full text-xs" />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(event) => setProductImages(Array.from(event.target.files || []))}
+                  className="mt-2 block w-full text-xs"
+                />
+                {productImages.length > 0 && (
+                  <span className="mt-2 block text-xs font-bold text-forest-800">
+                    {productImages.length.toLocaleString('ar-EG')} صور جاهزة للرفع
+                  </span>
+                )}
               </label>
               <button disabled={saving} className="rounded-xl bg-stone-950 py-3 font-bold text-white disabled:bg-stone-500">
                 {saving ? 'جاري النشر...' : 'حفظ ونشر المعروض'}

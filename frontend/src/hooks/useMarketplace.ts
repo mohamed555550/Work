@@ -103,13 +103,23 @@ function mapSeller(raw: any): Seller {
 
 function mapProduct(raw: any): Product {
   const id = Number(raw.id)
+  const fallbackImage = fallbackTradeImage(raw.trade, id)
+  const rawImages = Array.isArray(raw.images)
+    ? raw.images.map((item: any) => (typeof item === 'string' ? item : item?.image)).filter(Boolean)
+    : []
+  const mappedImages = [raw.image, ...rawImages]
+    .filter(Boolean)
+    .map((item) => mediaUrl(item, fallbackImage))
+  const images = Array.from(new Set(mappedImages))
+  const image = images[0] || mediaUrl(raw.image, fallbackImage)
   return {
     id,
     name: cleanText(raw.name),
     description: cleanText(raw.description || ''),
     ingredients: cleanText(raw.ingredients || ''),
     price: Number(raw.price),
-    image: mediaUrl(raw.image, fallbackTradeImage(raw.trade, id)),
+    image,
+    images: images.length ? images : [image],
     category: raw.category,
     preparationTime: Number(raw.preparation_time),
     rating: Number(raw.average_rating || 0),

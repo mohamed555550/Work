@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useChef, useFavorites, useProduct, useStartChefChat, useToggleFavorite } from '../hooks/useMarketplace'
 import { findTrade, findTradeCategory } from '../data/trades'
@@ -16,6 +17,16 @@ export default function ProductDetail() {
   const startChat = useStartChefChat()
   const product = productQuery.data
   const workerQuery = useChef(Number(product?.sellerId))
+  const [activeImage, setActiveImage] = useState('')
+
+  const gallery = useMemo(() => {
+    if (!product) return []
+    return product.images?.length ? product.images : [product.image]
+  }, [product])
+
+  useEffect(() => {
+    setActiveImage(gallery[0] || '')
+  }, [gallery])
 
   if (productQuery.isLoading) return <main className="min-h-screen p-8 text-center">جاري تحميل المعروض...</main>
   if (!product) return <NotFound />
@@ -36,7 +47,7 @@ export default function ProductDetail() {
   return (
     <main className="mx-auto min-h-screen max-w-6xl pb-28">
       <div className="relative h-80 overflow-hidden sm:mx-6 sm:mt-7 sm:rounded-[2rem] lg:h-[28rem]">
-        <img src={product.image} alt={product.name} onError={imageFallback} className="h-full w-full object-cover" />
+        <img src={activeImage || product.image} alt={product.name} onError={imageFallback} className="h-full w-full object-cover" />
         <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
           <Link to="/for-sale" className="grid h-11 w-11 place-items-center rounded-full bg-white/90 font-black">‹</Link>
           <button onClick={() => token ? toggleFavorite.mutate(product.id) : navigate('/auth')} className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-rose-600">
@@ -44,6 +55,21 @@ export default function ProductDetail() {
           </button>
         </div>
       </div>
+
+      {gallery.length > 1 && (
+        <div className="mx-4 mt-3 flex gap-2 overflow-x-auto pb-2 sm:mx-10" dir="rtl">
+          {gallery.map((image) => (
+            <button
+              key={image}
+              type="button"
+              onClick={() => setActiveImage(image)}
+              className={`h-20 w-24 shrink-0 overflow-hidden rounded-2xl border-2 bg-white ${image === (activeImage || product.image) ? 'border-brand-500' : 'border-white'}`}
+            >
+              <img src={image} alt="" onError={imageFallback} className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
 
       <section className="relative -mt-7 rounded-t-[2rem] border border-[#dfe7e3] bg-white px-5 pb-8 pt-7 shadow-card sm:mx-10 sm:rounded-[2rem] sm:px-8">
         <div className="flex flex-wrap items-start justify-between gap-4">

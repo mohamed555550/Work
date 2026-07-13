@@ -9,11 +9,12 @@ class ProductSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     can_order = serializers.BooleanField(read_only=True)
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = [
-            'id', 'name', 'description', 'ingredients', 'price', 'image',
+            'id', 'name', 'description', 'ingredients', 'price', 'image', 'images',
             'category', 'listing_type', 'trade', 'trade_category',
             'preparation_time', 'is_available', 'available_at',
             'can_order', 'seller', 'average_rating', 'review_count',
@@ -26,6 +27,16 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_review_count(self, obj) -> int:
         annotated = getattr(obj, 'rating_count', None)
         return int(annotated) if annotated is not None else obj.review_count
+
+    def get_images(self, obj) -> list[str]:
+        urls = []
+        if obj.image:
+            urls.append(obj.image.url)
+        for item in obj.images.all():
+            if item.image:
+                urls.append(item.image.url)
+        seen = set()
+        return [url for url in urls if not (url in seen or seen.add(url))]
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
@@ -129,5 +140,4 @@ class AISearchResultSerializer(serializers.Serializer):
 class RecommendationResultSerializer(serializers.Serializer):
     meals = RecommendedProductSerializer(many=True)
     chefs = RecommendedChefSerializer(many=True)
-
 

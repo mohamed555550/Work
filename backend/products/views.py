@@ -1,4 +1,5 @@
 from decimal import Decimal, InvalidOperation
+from django.db import transaction
 from django.db.models import Avg, Count
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
@@ -7,7 +8,7 @@ from hashlib import sha256
 from rest_framework import filters, generics, permissions
 from rest_framework.exceptions import ValidationError
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from .models import Product, SearchHistory
+from .models import MealImage, Product, SearchHistory
 from .serializers import (
     ProductSerializer,
     ProductCreateSerializer,
@@ -18,6 +19,36 @@ from .serializers import (
 )
 from .recommendations import recommendation_version, recommendations_for, semantic_search
 from common.utils import success_response, error_response
+
+
+MAX_GALLERY_IMAGES = 30
+MAX_GALLERY_IMAGE_SIZE = 10 * 1024 * 1024
+ALLOWED_GALLERY_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+
+
+def _validate_gallery_upload(upload):
+    if upload.size > MAX_GALLERY_IMAGE_SIZE:
+        raise ValidationError({'images': 'حجم كل صورة يجب ألا يتجاوز 10 ميجابايت'})
+    if getattr(upload, 'content_type', '') not in ALLOWED_GALLERY_IMAGE_TYPES:
+        raise ValidationError({'images': 'صيغة الصور يجب أن تكون JPG أو PNG أو WebP أو GIF'})
+
+
+def _attach_product_images(product, files):
+    if not files:
+        return
+    if len(files) > MAX_GALLERY_IMAGES:
+        raise ValidationError({'images': f'يمكن رفع حتى {MAX_GALLERY_IMAGES} صورة في المرة الواحدة'})
+    for upload in files:
+        _validate_gallery_upload(upload)
+
+    gallery_files = list(files)
+    if not product.image and gallery_files:
+        product.image = gallery_files.pop(0)
+        product.save(update_fields=['image'])
+
+    current_count = product.images.count()
+    for index, upload in enumerate(gallery_files, start=current_count):
+        MealImage.objects.create(meal=product, image=upload, sort_order=index)
 
 
 class ProductListView(generics.ListAPIView):
@@ -32,7 +63,7 @@ class ProductListView(generics.ListAPIView):
             .filter(seller__approved='approved')
             .filter(Q(is_available=True) | Q(available_at__isnull=False))
             .select_related('seller__user')
-            .prefetch_related('reviews')
+            .prefetch_related('images', 'reviews')
             .annotate(rating_value=Avg('reviews__rating'), rating_count=Count('reviews'))
             .order_by('-created_at', '-id')
         )
@@ -104,7 +135,7 @@ class SellerProductListView(generics.ListAPIView):
     def get_queryset(self):
         if not hasattr(self.request.user, 'seller_profile'):
             return Product.objects.none()
-        return Product.objects.filter(seller=self.request.user.seller_profile).select_related('seller__user')
+        return Product.objects.filter(seller=self.request.user.seller_profile).select_related('seller__user').prefetch_related('images')
 
     def list(self, request, *args, **kwargs):
         return success_response(data=self.get_serializer(self.get_queryset(), many=True).data)
@@ -115,7 +146,7 @@ class AdminProductListView(generics.ListAPIView):
     permission_classes = [permissions.IsAdminUser]
 
     def get_queryset(self):
-        return Product.objects.select_related('seller__user').prefetch_related('reviews').order_by('-created_at')
+        return Product.objects.select_related('seller__user').prefetch_related('images', 'reviews').order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         return success_response(data=self.get_serializer(self.get_queryset(), many=True).data)
@@ -128,8 +159,16 @@ class ProductCreateView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         if not hasattr(request.user, 'seller_profile') or not request.user.seller_profile.is_active_seller:
             return error_response('يجب أن تكون عاملاً معتمداً لإضافة المنتجات', status=403)
-        response = super().create(request, *args, **kwargs)
-        return success_response(data=response.data, message='تم إنشاء المنتج بنجاح')
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            product = serializer.save()
+            _attach_product_images(
+                product,
+                list(request.FILES.getlist('images')) + list(request.FILES.getlist('images[]')),
+            )
+        data = ProductSerializer(product, context=self.get_serializer_context()).data
+        return success_response(data=data, message='تم إنشاء المعروض بنجاح')
 
 
 class ProductManageView(generics.RetrieveUpdateDestroyAPIView):
@@ -139,14 +178,21 @@ class ProductManageView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            return Product.objects.all()
+            return Product.objects.all().prefetch_related('images')
         if hasattr(self.request.user, 'seller_profile'):
-            return Product.objects.filter(seller=self.request.user.seller_profile)
+            return Product.objects.filter(seller=self.request.user.seller_profile).prefetch_related('images')
         return Product.objects.none()
 
     def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        return success_response(data=response.data, message='تم تحديث المنتج')
+        with transaction.atomic():
+            super().update(request, *args, **kwargs)
+            product = self.get_object()
+            _attach_product_images(
+                product,
+                list(request.FILES.getlist('images')) + list(request.FILES.getlist('images[]')),
+            )
+        data = ProductSerializer(product, context=self.get_serializer_context()).data
+        return success_response(data=data, message='تم تحديث المعروض')
 
     def destroy(self, request, *args, **kwargs):
         product = self.get_object()
@@ -170,7 +216,7 @@ class ProductDetailView(generics.RetrieveAPIView):
             .filter(seller__approved='approved')
             .filter(Q(is_available=True) | Q(available_at__isnull=False))
             .select_related('seller__user')
-            .prefetch_related('reviews')
+            .prefetch_related('images', 'reviews')
         )
 
     def retrieve(self, request, *args, **kwargs):
