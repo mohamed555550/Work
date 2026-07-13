@@ -3,6 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import FileResponse, Http404, JsonResponse
 from django.urls import path, re_path, include
+from django.views.decorators.csrf import csrf_exempt
 from django.views.static import serve as serve_static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from users.views import LoginView, LogoutView, ProfileView, RefreshView, RegisterView
@@ -31,7 +32,11 @@ def api_or_frontend(api_view):
             return serve_frontend_index(request)
         return view(request, *args, **kwargs)
 
-    return wrapped
+    return csrf_exempt(wrapped)
+
+
+def csrf_exempt_api(api_view):
+    return csrf_exempt(api_view.as_view())
 
 
 auth_aliases = [
@@ -39,12 +44,12 @@ auth_aliases = [
     path('register/', api_or_frontend(RegisterView), name='register_slash'),
     path('login', api_or_frontend(LoginView), name='login_no_slash'),
     path('login/', api_or_frontend(LoginView), name='login_slash'),
-    path('logout', LogoutView.as_view(), name='logout_no_slash'),
-    path('logout/', LogoutView.as_view(), name='logout_slash'),
-    path('refresh', RefreshView.as_view(), name='refresh_no_slash'),
-    path('refresh/', RefreshView.as_view(), name='refresh_slash'),
-    path('me', ProfileView.as_view(), name='me_no_slash'),
-    path('me/', ProfileView.as_view(), name='me_slash'),
+    path('logout', csrf_exempt_api(LogoutView), name='logout_no_slash'),
+    path('logout/', csrf_exempt_api(LogoutView), name='logout_slash'),
+    path('refresh', csrf_exempt_api(RefreshView), name='refresh_no_slash'),
+    path('refresh/', csrf_exempt_api(RefreshView), name='refresh_slash'),
+    path('me', csrf_exempt_api(ProfileView), name='me_no_slash'),
+    path('me/', csrf_exempt_api(ProfileView), name='me_slash'),
     path('profile', api_or_frontend(ProfileView), name='profile_no_slash'),
     path('profile/', api_or_frontend(ProfileView), name='profile_slash'),
 ]
