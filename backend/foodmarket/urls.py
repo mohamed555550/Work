@@ -1,10 +1,23 @@
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import JsonResponse
-from django.urls import path, include
+from django.http import FileResponse, Http404, JsonResponse
+from django.urls import path, re_path, include
+from django.views.static import serve as serve_static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from users.views import LoginView, LogoutView, ProfileView, RefreshView, RegisterView
+
+
+def serve_frontend_index(_request):
+    index_path = settings.FRONTEND_DIST_DIR / 'index.html'
+    if not index_path.exists():
+        raise Http404('Frontend build is missing. Run npm --prefix frontend run build and copy dist to backend/frontend_dist.')
+    return FileResponse(index_path.open('rb'), content_type='text/html')
+
+
+def serve_frontend_asset(request, path):
+    return serve_static(request, path, document_root=settings.FRONTEND_DIST_DIR)
+
 
 auth_aliases = [
     path('register', RegisterView.as_view(), name='register_no_slash'),
@@ -48,6 +61,11 @@ urlpatterns = [
     path('api/v1/audit/', include('audit_logs.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='api_schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='api_schema'), name='api_docs'),
+    re_path(r'^(?P<path>(assets|brand|backgrounds)/.*)$', serve_frontend_asset, name='frontend_asset'),
+    re_path(r'^(?P<path>(sw\.js|manifest\.webmanifest|favicon\.ico))$', serve_frontend_asset, name='frontend_file'),
+    re_path(r'^(?!api/|admin/|static/|media/|healthz/).*$',
+            serve_frontend_index,
+            name='frontend_spa'),
 ]
 
 if settings.DEBUG:
